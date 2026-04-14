@@ -1,6 +1,6 @@
 #  TCC Excelencia
 
-Plataforma de **e-commerce e delivery** com cardápio integrado. Sistema completo para gerenciamento de produtos, pedidos, endereços de entrega e autenticação de usuários.
+Plataforma de **delivery** com cardápio integrado. Sistema completo para gerenciamento de produtos, pedidos, endereços de entrega e autenticação de usuários.
 
 **Repositório**: [github.com/VitorPezzete/TCC-Excelencia](https://github.com/VitorPezzete/TCC-Excelencia)
 
@@ -337,12 +337,10 @@ php artisan db:seed
 
 ## Funcionalidades em Desenvolvimento
 
-- [ ] Integração com Stripe/PayPal para pagamentos
 - [ ] Dashboard administrativo
 - [ ] Sistema de avaliações/comentários
 - [ ] Histórico de pedidos com detalhes
 - [ ] Notificações por email
-- [ ] API RESTful para mobile
 - [ ] Relatórios de vendas
 
 ---
