@@ -8,4 +8,37 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+        /* Cores Personalizadas */
+  --color-primary: #3c2214;
+  --color-secondary: #d69c5e;
+  --color-background-dark: #1A0F0E;
+  --color-text-light: #fdf1e4;
+
+  /* Fontes (Certifique-se de manter os imports do Google Fonts no Blade) */
+  --font-display: "Playfair Display", serif;
+  --font-body: "Lato", sans-serif;
+
+  /* Bordas e Sombras */
+  --radius-default: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Seus estilos customizados do scrollbar continuam aqui embaixo */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1A0F0E; 
+}
+::-webkit-scrollbar-thumb {
+    background: #d69c5e; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #c2884a;
 }
