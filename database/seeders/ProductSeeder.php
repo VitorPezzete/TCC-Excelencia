@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Product;
-use App\Models\Category;
+use App\Models\Produto;
+use App\Models\Categoria;
 
 class ProductSeeder extends Seeder
 {
@@ -14,21 +14,21 @@ class ProductSeeder extends Seeder
      */
 public function run(): void
 {
-    $salgados = Category::where('name', 'Salgados')->first();
-    $doces    = Category::where('name', 'Doces')->first();
-    $cafes    = Category::where('name', 'Cafés')->first();
-    $combos   = Category::where('name', 'Combos')->first();
+    $salgados = Categoria::where('nome', 'Salgados')->first();
+    $doces    = Categoria::where('nome', 'Doces')->first();
+    $cafes    = Categoria::where('nome', 'Cafés')->first();
+    $combos   = Categoria::where('nome', 'Combos')->first();
 
-    Product::create(['category_id' => $salgados->id, 'name' => 'Esfiha de Carne', 'description' => 'Massa de batata e recheio de carne temperada.', 'price' => 4.00, 'is_featured' => true, 'is_active' => true]);
-    Product::create(['category_id' => $salgados->id, 'name' => 'Esfiha de Frango', 'description' => 'Massa de batata e recheio de frango cremoso.', 'price' => 4.00, 'is_featured' => false, 'is_active' => true]);
+    Produto::create(['categoria_id' => $salgados->id, 'nome' => 'Esfiha de Carne', 'descricao' => 'Massa de batata e recheio de carne temperada.', 'preco' => 4.00, 'destaque' => true, 'ativo' => true]);
+    Produto::create(['categoria_id' => $salgados->id, 'nome' => 'Esfiha de Frango', 'descricao' => 'Massa de batata e recheio de frango cremoso.', 'preco' => 4.00, 'destaque' => false, 'ativo' => true]);
 
-    Product::create(['category_id' => $doces->id, 'name' => 'Biscoitinhos Amanteigados', 'description' => 'Delicioso biscoito amanteigados derrete na boca.', 'price' => 4.00, 'is_featured' => false, 'is_active' => true]);
-    Product::create(['category_id' => $doces->id, 'name' => 'Bota Fatia Fubá', 'description' => 'Fatia deliciosa de fubá', 'price' => 2.00, 'is_featured' => false, 'is_active' => true]);
+    Produto::create(['categoria_id' => $doces->id, 'nome' => 'Biscoitinhos Amanteigados', 'descricao' => 'Delicioso biscoito amanteigados derrete na boca.', 'preco' => 4.00, 'destaque' => false, 'ativo' => true]);
+    Produto::create(['categoria_id' => $doces->id, 'nome' => 'Bota Fatia Fubá', 'descricao' => 'Fatia deliciosa de fubá', 'preco' => 2.00, 'destaque' => false, 'ativo' => true]);
 
-    Product::create(['category_id' => $cafes->id, 'name' => 'Espresso', 'description' => 'Curto ou longo. Blend 100% arábica.', 'price' => 7.00, 'is_featured' => false, 'is_active' => true]);
-    Product::create(['category_id' => $cafes->id, 'name' => 'Cappuccino Italiano', 'description' => 'Espresso, leite vaporizado e espuma cremosa.', 'price' => 12.00, 'is_featured' => false, 'is_active' => true]);
+    Produto::create(['categoria_id' => $cafes->id, 'nome' => 'Espresso', 'descricao' => 'Curto ou longo. Blend 100% arábica.', 'preco' => 7.00, 'destaque' => false, 'ativo' => true]);
+    Produto::create(['categoria_id' => $cafes->id, 'nome' => 'Cappuccino Italiano', 'descricao' => 'Espresso, leite vaporizado e espuma cremosa.', 'preco' => 12.00, 'destaque' => false, 'ativo' => true]);
 
-    Product::create(['category_id' => $combos->id, 'name' => 'Combo Clássico', 'description' => '1 Coxinha + 1 Espresso + 1 Brigadeiro.', 'price' => 22.00, 'is_featured' => false, 'is_active' => true]);
-    Product::create(['category_id' => $combos->id, 'name' => 'Tarde Doce', 'description' => '1 Fatia de Bolo + 1 Cappuccino.', 'price' => 28.00, 'is_featured' => false, 'is_active' => true]);
+    Produto::create(['categoria_id' => $combos->id, 'nome' => 'Combo Clássico', 'descricao' => '1 Coxinha + 1 Espresso + 1 Brigadeiro.', 'preco' => 22.00, 'destaque' => false, 'ativo' => true]);
+    Produto::create(['categoria_id' => $combos->id, 'nome' => 'Tarde Doce', 'descricao' => '1 Fatia de Bolo + 1 Cappuccino.', 'preco' => 28.00, 'destaque' => false, 'ativo' => true]);
 }  
 }
