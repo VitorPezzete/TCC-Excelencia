@@ -10,9 +10,7 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-<script>
-        tailwind.config = {};
-    </script>
+
 <style>
         ::-webkit-scrollbar {
             width: 8px;
@@ -31,7 +29,7 @@
 </head>
 
 @include('header')
-<section class="relative pt-32 pb-24 flex items-center justify-center min-h-[80vh] bg-[#0a0504]">
+<section class="relative pt-20 pb-24 flex items-center justify-center min-h-[80vh] bg-[#0a0504]">
 <div class="absolute inset-0 z-0">
 <img alt="Coffee and pastries background" class="w-full h-full object-cover opacity-30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC33b8ZcNIo35nwxqQn43HQn4HmFMWH5cc96r12PBSI-56n1JvLo7gmK2VdgtRC2hMy9ZupAyxvNNYNw8aZ1nJ3o1ZCvKhSiy-Vx-OrpMq1xC13LjolNSKwhYImkOwsq0b0rqY1e-FhzjRjsVmK4CkWnSA8zCyOAn7nnJujk4nh3rOPbE6yWZN-J8M_Mqgnnw8GZeKOAOmRFqG3w1rGGq82F51S6JYrqN_WVHBngFiC4y47HgNU_pr9CgY-sscUqYUjI3GaxE924Y4X"/>
 <div class="absolute inset-0 bg-gradient-to-b from-background-dark/80 to-background-dark"></div>
@@ -135,60 +133,61 @@
 <div class="h-1 w-24 bg-secondary mx-auto rounded-full mb-6"></div>
 <p class="text-gray-300 font-light max-w-2xl mx-auto">Conheça as estrelas do nosso cardápio, preparadas diariamente com ingredientes selecionados e muito amor.</p>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-<div class="bg-[#140b0a] rounded-2xl overflow-hidden shadow-soft border border-secondary/10 group hover:-translate-y-2 transition-transform duration-300">
-<div class="h-48 overflow-hidden relative">
-<img alt="Bolo de Chocolate" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDiAcFK6HOD-fq_-B_X0feE4sXBGC8Wnvri_nHPPcQ7KopyJO0XLvwz3utsY2OG7Tv_FD6yYHQ09F3uMpOk0S3stq3v4t-cT_iDpTS-sD18SHH30zltcnIWcIZJpEgu5vAIrqNHTakDHVffodd-2UMa073YYiajMUCIJf5C5UP9vM5YAj0Xg7hVhldSrECOJVlgbp7PqzFi1ncPK8VN50XGzIp2ug8XlEIDrm5SFiyHNg6-LggqRdMRuhY5KC3K432QTQymfwPGaBb"/>
-<div class="absolute top-4 right-4 bg-secondary text-primary text-xs font-bold px-3 py-1 rounded-full">Favorito</div>
+
+@if($destaques->isEmpty())
+    <div class="text-center py-16 text-gray-600">
+        <span class="material-symbols-outlined text-5xl mb-4 block">restaurant_menu</span>
+        <p class="text-sm">Nenhum produto em destaque. Configure no painel admin.</p>
+    </div>
+@else
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+    @foreach($destaques as $produto)
+    <div class="bg-[#140b0a] rounded-2xl overflow-hidden shadow-soft border border-secondary/10 group hover:-translate-y-2 transition-transform duration-300 flex flex-col">
+        <div class="h-48 overflow-hidden relative shrink-0">
+            @if($produto->imagem)
+                <img
+                    alt="{{ $produto->nome }}"
+                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem) }}">
+            @else
+                <div class="w-full h-full bg-gradient-to-br from-secondary/10 to-secondary/5 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-secondary/30 text-6xl">restaurant_menu</span>
+                </div>
+            @endif
+            @if($produto->categoria)
+                <div class="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10">
+                    {{ $produto->categoria->nome }}
+                </div>
+            @endif
+            <div class="absolute top-3 right-3 bg-secondary text-primary w-7 h-7 rounded-full flex items-center justify-center shadow-md">
+                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">star</span>
+            </div>
+        </div>
+        <div class="p-5 text-center flex-1 flex flex-col">
+            <h3 class="font-display text-lg font-bold text-white mb-2">{{ $produto->nome }}</h3>
+            <p class="text-gray-400 text-sm mb-4 flex-1 leading-relaxed">{{ Str::limit($produto->descricao, 70) }}</p>
+            <div class="flex items-center justify-between mt-auto">
+                <span class="text-secondary font-bold text-lg">R$ {{ number_format($produto->preco, 2, ',', '.') }}</span>
+                <a href="{{ route('cardapio') }}"
+                   class="flex items-center gap-1 text-xs font-bold text-secondary hover:text-white bg-secondary/10 hover:bg-secondary/20 px-3 py-1.5 rounded-full transition-all border border-secondary/20">
+                    <span class="material-icons text-[14px]">add_shopping_cart</span> Ver
+                </a>
+            </div>
+        </div>
+    </div>
+    @endforeach
 </div>
-<div class="p-6 text-center">
-<h3 class="font-display text-xl font-bold text-white mb-2">Bolo Trufado</h3>
-<p class="text-gray-400 text-sm mb-4">Massa úmida de cacau com recheio cremoso de trufa e cobertura de ganache.</p>
-<span class="text-secondary font-bold text-lg block">R$ 15,90 / fatia</span>
-</div>
-</div>
-<div class="bg-[#140b0a] rounded-2xl overflow-hidden shadow-soft border border-secondary/10 group hover:-translate-y-2 transition-transform duration-300">
-<div class="h-48 overflow-hidden relative">
-<img 
-    alt="Coxinha" 
-    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-    src="{{ Vite::asset('resources/images/products/coxinha.jpg') }}">
-</div>
-<div class="p-6 text-center">
-<h3 class="font-display text-xl font-bold text-white mb-2">Coxinha Gourmet</h3>
-<p class="text-gray-400 text-sm mb-4">Massa cremosa e crocante por fora, recheada com frango desfiado e catupiry.</p>
-<span class="text-secondary font-bold text-lg block">R$ 8,50</span>
-</div>
-</div>
-<div class="bg-[#140b0a] rounded-2xl overflow-hidden shadow-soft border border-secondary/10 group hover:-translate-y-2 transition-transform duration-300">
-<div class="h-48 overflow-hidden relative">
-<img alt="Café Especial" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsQhLdS0ba0NhODbDwYKv9uUfJWk4C4F6FVL35hciSwQ9rIaZlOL8kvvUqT2yLJLb9Ta9gUDVHrxNJPN_aLBAatqzly0lSMVq7P1bIfYTUvM1tjMvNkWCXBvZQnN6250vQQg4YML-KYdEADDaUkac1bFI8yj1TUhjkPPgyHnRaADMU0HFoO5J5vm3NJSErj6jkJei-DceomEvJ1iPYWhCSPFNCqPlgSQvs2YsCeccce9Q8dTbouJavtEW_IH-S1nU-BeMxPDtJvkDM"/>
-</div>
-<div class="p-6 text-center">
-<h3 class="font-display text-xl font-bold text-white mb-2">Café Especial</h3>
-<p class="text-gray-400 text-sm mb-4">Grãos selecionados com notas de chocolate e caramelo, extração perfeita.</p>
-<span class="text-secondary font-bold text-lg block">R$ 12,00</span>
-</div>
-</div>
-<div class="bg-[#140b0a] rounded-2xl overflow-hidden shadow-soft border border-secondary/10 group hover:-translate-y-2 transition-transform duration-300">
-<div class="h-48 overflow-hidden relative">
-<img alt="Tartelete" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQlcBMKswVF8GlOSyw381GryMkBTGGqI0his3kuaA-RXKgMzlnRHXXVWlh22ygpHZfaKqAt2xOs6Iii8c-5QEsvJpXvye3f9Ygupv7CGaSpxAJxFAuLHGS4tqMttxd_Y39tZrlPgjXXrSMZSNt-itprAYLI7RhCbziFxDAXISSPqyMmruPAFmZUC870ZV_apH7fVozR4_dNQSBKNgNMxhief6VYj7QVjQH8YjWpht-OvnwI9zctrTu8dLv_rB1A1KVaFj6MklLHETB"/>
-<div class="absolute top-4 right-4 bg-white text-background-dark text-xs font-bold px-3 py-1 rounded-full">Novo</div>
-</div>
-<div class="p-6 text-center">
-<h3 class="font-display text-xl font-bold text-white mb-2">Tartelete de Frutas</h3>
-<p class="text-gray-400 text-sm mb-4">Massa sablée crocante com creme pâtissière leve e frutas da estação frescas.</p>
-<span class="text-secondary font-bold text-lg block">R$ 14,90</span>
-</div>
-</div>
-</div>
+@endif
+
 <div class="mt-12 text-center">
 <a class="inline-block bg-transparent border-2 border-secondary text-secondary hover:bg-secondary hover:text-primary font-bold px-8 py-3 rounded-full transition-all" href="{{ route('cardapio') }}">
-                Ver Cardápio Completo
-            </a>
+    Ver Cardápio Completo
+</a>
 </div>
 </div>
 </section>
+
+
 <section class="py-24 bg-[#140b0a] border-t border-secondary/10">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">

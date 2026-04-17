@@ -14,7 +14,8 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $addresses = $user->enderecos()->get();
-        return view('perfil', compact('user', 'addresses'));
+        $pedidos = $user->pedidos()->with(['itens.produto', 'pagamento', 'avaliacao'])->latest()->get();
+        return view('perfil', compact('user', 'addresses', 'pedidos'));
     }
 
     public function updateData(Request $request)

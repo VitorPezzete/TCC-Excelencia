@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
             fieldNumber.value       = address.dataset.number       || '';
             fieldComplement.value   = address.dataset.complement   || '';
             
-            // Forçar o fetch de CEP
             fieldCep.dispatchEvent(new Event('blur'));
         }
 
@@ -127,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function () {
         this.value = v;
     });
 
-    // Carregar endereços em tempo real nos cards
     document.querySelectorAll('.address-card').forEach(async card => {
         const cep = card.dataset.cep;
         if (!cep) return;
@@ -149,5 +147,104 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch {
             card.querySelector('.realtime-address-street').textContent = 'Erro ao buscar endereço em tempo real';
         }
+    });
+
+    const modalPedido = document.getElementById('modal-pedido');
+    const modalPedidoClose = document.getElementById('modal-pedido-close');
+    const modalPedidoCancel = document.getElementById('modal-pedido-cancel');
+    const btnDetalhes = document.querySelectorAll('.btn-detalhes-pedido');
+
+    function closePedidoModal() {
+        modalPedido.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    if (modalPedidoClose) modalPedidoClose.addEventListener('click', closePedidoModal);
+    if (modalPedidoCancel) modalPedidoCancel.addEventListener('click', closePedidoModal);
+    if (modalPedido) {
+        modalPedido.addEventListener('click', e => {
+            if (e.target === modalPedido) closePedidoModal();
+        });
+    }
+
+    const formatCurrency = val => parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    const statusMap = {
+        'pendente':          { label: 'Pendente', icon: 'pending', color: 'gray' },
+        'confirmado':        { label: 'Confirmado', icon: 'thumb_up', color: 'blue' },
+        'preparando':        { label: 'Em Preparação', icon: 'soup_kitchen', color: 'yellow' },
+        'saiu_para_entrega': { label: 'Saiu para Entrega', icon: 'two_wheeler', color: 'blue' },
+        'entregue':          { label: 'Entregue', icon: 'check_circle', color: 'green' },
+        'cancelado':         { label: 'Cancelado', icon: 'cancel', color: 'red' },
+    };
+
+    btnDetalhes.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const pedido = JSON.parse(this.dataset.pedido);
+            
+            document.getElementById('mp-id').textContent = '#' + String(pedido.id).padStart(4, '0');
+            
+            const dateObj = new Date(pedido.created_at);
+            document.getElementById('mp-date').textContent = 'Realizado em ' + dateObj.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+            
+            const statusInfo = statusMap[pedido.status] || statusMap['pendente'];
+            document.getElementById('mp-status-label').textContent = statusInfo.label;
+            document.getElementById('mp-status-label').className = `font-bold text-${statusInfo.color}-400 text-xl tracking-wide uppercase`;
+            document.getElementById('mp-status-icon').textContent = statusInfo.icon;
+            document.getElementById('mp-status-icon-container').className = `bg-${statusInfo.color}-500/20 text-${statusInfo.color}-400 p-3 rounded-full flex items-center justify-center shadow-inner shadow-${statusInfo.color}-500/10`;
+
+            const itemsList = document.getElementById('mp-items-list');
+            itemsList.innerHTML = '';
+            
+            pedido.itens.forEach(item => {
+                const obsHTML = item.observacoes ? `<p class="text-sm text-gray-400">${item.observacoes}</p>` : '';
+                itemsList.innerHTML += `
+                    <div class="flex justify-between items-center bg-background-dark/50 p-3 rounded-lg border border-gray-800/50">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-10 h-10 bg-gray-800 rounded flex items-center justify-center text-secondary font-bold text-sm">${item.quantidade}x</div>
+                            <div>
+                                <p class="font-bold text-white">${item.produto.nome}</p>
+                                ${obsHTML}
+                            </div>
+                        </div>
+                        <p class="font-bold text-white">R$ ${formatCurrency(item.preco_total)}</p>
+                    </div>
+                `;
+            });
+
+            document.getElementById('mp-address-name').textContent = pedido.endereco ? pedido.endereco.nome : 'Retirada/Sem Endereço';
+            
+            if(pedido.endereco) {
+                document.getElementById('mp-address-desc').innerHTML = `
+                    ${pedido.endereco.logradouro || 'Buscando...'}, ${pedido.endereco.numero}<br/>
+                    ${pedido.endereco.complemento ? pedido.endereco.complemento + '<br/>' : ''}
+                    CEP: ${pedido.endereco.cep}<br/>
+                `;
+                
+                const rawCep = pedido.endereco.cep.replace(/\D/g, '');
+                fetch(`https://viacep.com.br/ws/${rawCep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            document.getElementById('mp-address-desc').innerHTML = `
+                                ${data.logradouro}, ${pedido.endereco.numero}<br/>
+                                ${pedido.endereco.complemento ? pedido.endereco.complemento + '<br/>' : ''}
+                                ${data.bairro}<br/>
+                                ${data.localidade} - ${data.uf}
+                            `;
+                        }
+                    });
+            } else {
+                 document.getElementById('mp-address-desc').textContent = '--';
+            }
+
+            document.getElementById('mp-subtotal').textContent = 'R$ ' + formatCurrency(pedido.subtotal);
+            document.getElementById('mp-taxa').textContent = pedido.taxa_entrega > 0 ? 'R$ ' + formatCurrency(pedido.taxa_entrega) : 'Grátis';
+            document.getElementById('mp-taxa').className = pedido.taxa_entrega > 0 ? 'text-gray-400' : 'text-green-400';
+            document.getElementById('mp-total').textContent = 'R$ ' + formatCurrency(pedido.total);
+
+            modalPedido.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
     });
 });

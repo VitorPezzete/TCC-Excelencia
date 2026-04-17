@@ -2,13 +2,14 @@
 <html class="scroll-smooth" lang="pt-BR"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Excelência Doces &amp; Salgados - Cardápio</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-<script>tailwind.config = {};</script>
+
 <style>
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #1A0F0E; }
@@ -36,14 +37,15 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             @forelse($destaques as $destaque)
                 <div class="bg-background-dark rounded-2xl overflow-hidden shadow-soft hover:shadow-xl transition-all duration-300 group border border-secondary/20 cursor-pointer open-modal"
+                    data-id="{{ $destaque->id }}"
                     data-name="{{ $destaque->nome }}"
                     data-description="{{ $destaque->descricao }}"
                     data-price="{{ number_format($destaque->preco, 2, ',', '.') }}"
                     data-category="{{ $destaque->categoria->nome ?? 'Destaque' }}"
-                    data-image="{{ $destaque->imagem ? asset('images/products/' . $destaque->imagem) : '' }}">
+                    data-image="{{ $destaque->imagem ? (Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem)) : '' }}">
                     <div class="relative h-72 overflow-hidden">
                         @if($destaque->imagem)
-                            <img alt="{{ $destaque->nome }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" src="{{ asset('images/products/' . $destaque->imagem) }}"/>
+                            <img alt="{{ $destaque->nome }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" src="{{ Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem) }}"/>
                         @else
                             <div class="w-full h-full bg-gray-800 flex items-center justify-center">
                                 <span class="material-icons text-6xl text-gray-600">image_not_supported</span>
@@ -80,13 +82,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @forelse($categoria->produtos->where('ativo', true) as $produto)
                         <div class="flex items-center gap-4 border-b border-gray-800 pb-4 group cursor-pointer open-modal"
+                            data-id="{{ $produto->id }}"
                             data-name="{{ $produto->nome }}"
                             data-description="{{ $produto->descricao }}"
                             data-price="{{ number_format($produto->preco, 2, ',', '.') }}"
                             data-category="{{ $categoria->nome }}"
-                            data-image="{{ $produto->imagem ? asset('images/products/' . $produto->imagem) : '' }}">
+                            data-image="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem)) : '' }}">
                             @if($produto->imagem)
-                                <img alt="{{ $produto->nome }}" class="w-16 h-16 rounded-lg object-cover border border-secondary/20 shadow-soft flex-shrink-0" src="{{ asset('images/products/' . $produto->imagem) }}"/>
+                                <img alt="{{ $produto->nome }}" class="w-16 h-16 rounded-lg object-cover border border-secondary/20 shadow-soft flex-shrink-0" src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem) }}"/>
                             @else
                                 <div class="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 border border-secondary/20">
                                     <span class="material-icons text-gray-600">fastfood</span>
@@ -145,7 +148,7 @@
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-4 mt-auto">
-                <button class="w-full sm:w-auto flex-1 bg-secondary hover:bg-[#c2884a] text-primary py-4 px-8 rounded-xl font-bold text-center transition-all shadow-[0_0_15px_rgba(214,156,94,0.3)] hover:shadow-[0_0_20px_rgba(214,156,94,0.5)] flex justify-center items-center gap-2 transform hover:-translate-y-1">
+                <button id="add-to-cart-btn" class="w-full sm:w-auto flex-1 bg-secondary hover:bg-[#c2884a] text-primary py-4 px-8 rounded-xl font-bold text-center transition-all shadow-[0_0_15px_rgba(214,156,94,0.3)] hover:shadow-[0_0_20px_rgba(214,156,94,0.5)] flex justify-center items-center gap-2 transform hover:-translate-y-1">
                     <span class="material-icons">shopping_bag</span>
                     Adicionar ao Pedido
                 </button>

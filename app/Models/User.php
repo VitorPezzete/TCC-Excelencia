@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'is_admin',
     ];
 
     protected $hidden = [
@@ -31,8 +32,23 @@ class User extends Authenticatable
         ];
     }
 
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
+    }
+
     public function enderecos()
     {
         return $this->hasMany(Endereco::class);
+    }
+
+    public function itensCarrinho()
+    {
+        return $this->hasMany(ItemCarrinho::class);
+    }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class);
     }
 }
