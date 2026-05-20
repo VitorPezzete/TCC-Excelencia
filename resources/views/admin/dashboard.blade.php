@@ -5,14 +5,15 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Excelência — Painel Admin</title>
+    <title>Excelência - Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Lato:wght@300;400;700&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    @vite(['resources/css/app.css', 'resources/js/admin.js'])
+    @vite(['resources/css/app.css', 'resources/js/admin.js', 'resources/js/accessibility.js'])
 
     {{-- Dados para gráficos (acessados pelo admin.js via window) --}}
     <script>
@@ -21,6 +22,9 @@
             fat30: @json($faturamento30Dias),
             status: @json($pedidosPorStatus),
             catFat: @json($faturamentoPorCategoria),
+            topProd: @json($topProdutos),
+            vol7d: @json($volumePedidos7Dias),
+            vol30d: @json($volumePedidos30Dias),
         };
     </script>
 
@@ -116,6 +120,22 @@
 
         .status-pill:hover {
             opacity: 0.75;
+        }
+
+        span.status-pill {
+            cursor: default;
+        }
+
+        .pedido-tab-btn {
+            color: #6b7280;
+            background: transparent;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .pedido-tab-btn.active-tab {
+            background: rgba(214, 156, 94, 0.12);
+            color: #d69c5e;
         }
 
         .th {
@@ -216,35 +236,34 @@
 
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 py-5 border-b border-white/[0.04]">
-            <div
-                class="w-10 h-10 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-secondary text-[20px]">bakery_dining</span>
+            <div class="w-10 h-10 rounded-full border border-secondary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                <img src="/images/logo.png" alt="Logo" class="w-full h-full object-cover">
             </div>
             <div>
                 <p class="font-display font-bold text-secondary text-base leading-tight">Excelência</p>
-                <p class="text-[10px] text-gray-700 tracking-widest uppercase">Painel Admin</p>
+                <p class="text-[10px] text-gray-700 tracking-widest uppercase">Dashboard</p>
             </div>
         </div>
 
         {{-- Nav --}}
         <nav class="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto">
-            <p class="px-4 pb-1.5 text-[9px] font-bold text-gray-700 uppercase tracking-widest">Gestão</p>
-            <button class="sidebar-link active" data-section="overview">
+            <p class="px-4 pb-1.5 text-[9px] font-bold text-gray-700 uppercase tracking-widest">Relatórios</p>
+            <button class="sidebar-link" data-section="overview">
                 <span class="material-symbols-outlined text-[19px]">dashboard</span> Visão Geral
             </button>
-            <button class="sidebar-link" data-section="pedidos">
+            <button class="sidebar-link" data-section="avaliacoes">
+                <span class="material-symbols-outlined text-[19px]">star</span> Avaliações
+            </button>
+
+            <p class="px-4 pt-4 pb-1.5 text-[9px] font-bold text-gray-700 uppercase tracking-widest border-t border-white/[0.04]">Gestão</p>
+            <button class="sidebar-link active" data-section="pedidos">
                 <span class="material-symbols-outlined text-[19px]">receipt_long</span> Pedidos
             </button>
             <button class="sidebar-link" data-section="produtos">
                 <span class="material-symbols-outlined text-[19px]">cake</span> Produtos
             </button>
-            <button class="sidebar-link" data-section="avaliacoes">
-                <span class="material-symbols-outlined text-[19px]">star_rate</span> Avaliações
-            </button>
-
-            <p class="px-4 pt-5 pb-1.5 text-[9px] font-bold text-gray-700 uppercase tracking-widest">Configurações</p>
-            <button class="sidebar-link" data-section="usuarios">
-                <span class="material-symbols-outlined text-[19px]">group</span> Usuários
+            <button class="sidebar-link" data-section="entrega">
+                <span class="material-symbols-outlined text-[19px]">local_shipping</span> Zonas de Entrega
             </button>
         </nav>
 
@@ -286,9 +305,9 @@
                 </button>
                 <div class="min-w-0">
                     <h1 id="page-title"
-                        class="font-display text-lg md:text-xl font-bold text-white leading-tight truncate">Visão Geral
+                        class="font-display text-lg md:text-xl font-bold text-white leading-tight truncate">Pedidos
                     </h1>
-                    <p id="page-subtitle" class="text-[11px] text-gray-600 hidden sm:block">Resumo geral do seu negócio
+                    <p id="page-subtitle" class="text-[11px] text-gray-600 hidden sm:block">Pedidos ativos de hoje
                     </p>
                 </div>
             </div>
@@ -304,63 +323,88 @@
 
         <main class="p-3 md:p-5 lg:p-6 space-y-5 flex-1">
 
-            {{-- ═══════════ OVERVIEW ═══════════ --}}
-            <div id="section-overview" class="section active animate-fade-up space-y-5">
+            {{-- ═══════════ OVERVIEW (oculto) ═══════════ --}}
+            <div id="section-overview" class="section animate-fade-up space-y-5">
 
                 {{-- KPI CARDS --}}
-                <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+                <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
                     <div class="kpi-card col-span-1">
-                        <div
-                            class="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full -translate-y-8 translate-x-8">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full -translate-y-8 translate-x-8"></div>
+                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Faturamento / Mês</p>
+                        <p class="text-xl md:text-2xl font-bold text-secondary font-display truncate">R$ {{ number_format($totalFaturamentoMes, 2, ',', '.') }}</p>
+                        <div class="flex items-center gap-1 mt-1 text-[10px]">
+                            @if($variacaoFat >= 0)
+                                <span class="text-green-400 font-bold">▲ {{ number_format($variacaoFat, 1, ',', '.') }}%</span>
+                            @else
+                                <span class="text-red-400 font-bold">▼ {{ number_format(abs($variacaoFat), 1, ',', '.') }}%</span>
+                            @endif
+                            <span class="text-gray-700">vs. mês ant.</span>
                         </div>
-                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Faturamento / Mês
-                        </p>
-                        <p class="text-2xl md:text-3xl font-bold text-secondary font-display">R$
-                            {{ number_format($totalFaturamentoMes, 2, ',', '.') }}</p>
-                        <p class="text-[10px] text-gray-700 mt-1">Pedidos não cancelados</p>
-                        <span
-                            class="material-symbols-outlined text-[36px] text-secondary/8 absolute bottom-3 right-3">payments</span>
+                        <span class="material-symbols-outlined text-[36px] text-secondary/8 absolute bottom-3 right-3">payments</span>
                     </div>
+
                     <div class="kpi-card col-span-1">
-                        <div
-                            class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -translate-y-8 translate-x-8">
-                        </div>
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Pedidos Hoje</p>
-                        <p class="text-2xl md:text-3xl font-bold text-blue-400 font-display">{{ $pedidosHoje }}</p>
-                        <p class="text-[10px] text-gray-700 mt-1">{{ now()->format('d/m/Y') }}</p>
-                        <span
-                            class="material-symbols-outlined text-[36px] text-blue-400/8 absolute bottom-3 right-3">shopping_bag</span>
-                    </div>
-                    <div class="kpi-card col-span-1">
-                        <div
-                            class="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full -translate-y-8 translate-x-8">
+                        <p class="text-xl md:text-2xl font-bold text-blue-400 font-display">{{ $pedidosHoje }}</p>
+                        <div class="flex items-center gap-1 mt-1 text-[10px]">
+                            @if($variacaoPedidos >= 0)
+                                <span class="text-green-400 font-bold">▲ {{ number_format($variacaoPedidos, 1, ',', '.') }}%</span>
+                            @else
+                                <span class="text-red-400 font-bold">▼ {{ number_format(abs($variacaoPedidos), 1, ',', '.') }}%</span>
+                            @endif
+                            <span class="text-gray-700">vs. ontem</span>
                         </div>
-                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Clientes</p>
-                        <p class="text-2xl md:text-3xl font-bold text-green-400 font-display">{{ $totalClientes }}</p>
-                        <p class="text-[10px] text-gray-700 mt-1">Total de usuários</p>
-                        <span
-                            class="material-symbols-outlined text-[36px] text-green-400/8 absolute bottom-3 right-3">group</span>
+                        <span class="material-symbols-outlined text-[36px] text-blue-400/8 absolute bottom-3 right-3">shopping_bag</span>
                     </div>
+
                     <div class="kpi-card col-span-1">
-                        <div
-                            class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full -translate-y-8 translate-x-8">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full -translate-y-8 translate-x-8"></div>
+                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Ticket Médio</p>
+                        <p class="text-xl md:text-2xl font-bold text-green-400 font-display truncate">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</p>
+                        <p class="text-[10px] text-gray-700 mt-1">Este mês</p>
+                        <span class="material-symbols-outlined text-[36px] text-green-400/8 absolute bottom-3 right-3">receipt</span>
+                    </div>
+
+                    <div class="kpi-card col-span-1">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full -translate-y-8 translate-x-8"></div>
+                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Cancelamentos</p>
+                        <p class="text-xl md:text-2xl font-bold text-red-400 font-display">{{ number_format($taxaCancelamento, 1, ',', '.') }}%</p>
+                        <p class="text-[10px] text-gray-700 mt-1">Taxa este mês</p>
+                        <span class="material-symbols-outlined text-[36px] text-red-400/8 absolute bottom-3 right-3">cancel</span>
+                    </div>
+
+                    <div class="kpi-card col-span-1">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full -translate-y-8 translate-x-8"></div>
+                        <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Novos Clientes</p>
+                        <p class="text-xl md:text-2xl font-bold text-orange-400 font-display">{{ $novosClientesMes }}</p>
+                        <div class="flex items-center gap-1 mt-1 text-[10px]">
+                            @if($variacaoClientes >= 0)
+                                <span class="text-green-400 font-bold">▲ {{ number_format($variacaoClientes, 1, ',', '.') }}%</span>
+                            @else
+                                <span class="text-red-400 font-bold">▼ {{ number_format(abs($variacaoClientes), 1, ',', '.') }}%</span>
+                            @endif
+                            <span class="text-gray-700">vs. mês ant.</span>
                         </div>
+                        <span class="material-symbols-outlined text-[36px] text-orange-400/8 absolute bottom-3 right-3">person_add</span>
+                    </div>
+
+                    <div class="kpi-card col-span-1">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Nota Média</p>
-                        <p class="text-2xl md:text-3xl font-bold text-purple-400 font-display">
-                            {{ number_format($mediaAvaliacoes, 1) }}</p>
+                        <p class="text-xl md:text-2xl font-bold text-purple-400 font-display">{{ number_format($mediaAvaliacoes, 1) }}</p>
                         <p class="text-[10px] text-gray-700 mt-1">{{ $totalAvaliacoes }} avaliações</p>
-                        <span
-                            class="material-symbols-outlined text-[36px] text-purple-400/8 absolute bottom-3 right-3">star</span>
+                        <span class="material-symbols-outlined text-[36px] text-purple-400/8 absolute bottom-3 right-3">star</span>
                     </div>
                 </div>
 
                 {{-- GRÁFICOS --}}
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                    {{-- Faturamento (7/30 dias) --}}
+                    {{-- Faturamento e Volume (7/30 dias) --}}
                     <div class="xl:col-span-2 bg-[#1d0e0b] rounded-2xl border border-white/[0.04] p-4 md:p-5">
                         <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
                             <div>
-                                <h2 class="font-bold text-white text-sm">Faturamento</h2>
+                                <h2 class="font-bold text-white text-sm">Faturamento e Volume</h2>
                                 <p class="text-[11px] text-gray-600">Pedidos confirmados, excl. cancelados</p>
                             </div>
                             <div class="flex gap-1 bg-black/30 rounded-full p-1">
@@ -390,31 +434,92 @@
                     <canvas id="chartCategoria" height="70"></canvas>
                 </div>
 
-                {{-- Pedidos recentes --}}
-                <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04]">
-                    <div class="px-4 md:px-5 py-4 border-b border-white/[0.04] flex items-center justify-between">
-                        <h2 class="font-bold text-white text-sm">Pedidos Recentes</h2>
-                        <button class="text-xs text-secondary hover:text-secondary/70 font-semibold transition-colors"
-                            data-jump="pedidos">Ver todos →</button>
+                {{-- Top Produtos --}}
+                <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] p-4 md:p-5">
+                    <h2 class="font-bold text-white text-sm mb-1">Top 5 Produtos Mais Vendidos</h2>
+                    <p class="text-[11px] text-gray-600 mb-4">Pratos favoritos pelo público</p>
+                    <canvas id="chartTopProdutos" height="100"></canvas>
+                </div>
+            </div>
+
+            {{-- ═══════════ PEDIDOS ═══════════ --}}
+            <div id="section-pedidos" class="section active animate-fade-up space-y-4">
+
+                <div id="alert-pedidos-atrasados" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between gap-4 animate-pulse {{ $pedidosAtrasados > 0 ? '' : 'hidden' }}">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-red-400 text-[24px]">warning</span>
+                        <div>
+                            <p class="text-red-400 font-bold text-sm">Atenção: <span id="count-atrasados">{{ $pedidosAtrasados }}</span> pedido(s) pendente(s) há mais de 5 minutos!</p>
+                            <p class="text-red-400/80 text-[11px]">Verifique a aba de Ativos Hoje e aceite os pedidos para não atrasar a produção.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Abas: Ativos / Histórico --}}
+                <div class="flex gap-1 bg-black/30 border border-white/[0.04] rounded-2xl p-1 w-fit">
+                    <button id="tab-ativos"
+                        class="pedido-tab-btn active-tab px-5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">bolt</span> Ativos Hoje
+                        @php $ativos = $pedidosHoje_lista->count(); @endphp
+                        @if($ativos > 0)
+                            <span class="bg-secondary/20 text-secondary px-2 py-0.5 rounded-full text-[10px]">{{ $ativos }}</span>
+                        @endif
+                    </button>
+                    <button id="tab-historico"
+                        class="pedido-tab-btn px-5 py-2 text-xs font-bold text-gray-500 rounded-xl transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">history</span> Histórico
+                    </button>
+                </div>
+
+                {{-- PAINEL: Pedidos Ativos --}}
+                <div id="painel-ativos" class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04]">
+                    <div class="px-4 md:px-5 py-4 border-b border-white/[0.04] flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                        <div>
+                            <h2 class="font-bold text-white text-sm">Pedidos de Hoje</h2>
+                            <p class="text-[11px] text-gray-600">{{ now()->translatedFormat('d \d\e F \d\e Y') }}</p>
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined text-[16px] text-gray-600 absolute left-3 top-1/2 -translate-y-1/2">search</span>
+                            <input id="pedido-search" type="text" placeholder="Buscar cliente…"
+                                class="w-full sm:w-52 bg-black/30 border border-white/[0.06] text-white text-xs rounded-full pl-9 pr-4 py-2 focus:outline-none focus:border-secondary/40 placeholder-gray-700 transition-all">
+                        </div>
+                    </div>
+                    {{-- Filtro pílulas de status (somente ativos) --}}
+                    <div class="px-4 md:px-5 py-3 border-b border-white/[0.03] flex gap-2 flex-wrap">
+                        @php
+                            $statusAtivos = [''=>'Todos','pendente'=>'Pendente','confirmado'=>'Confirmado','preparando'=>'Preparando','saiu_para_entrega'=>'Saiu p/ Entrega'];
+                            $countAtivos = $pedidosHoje_lista->groupBy('status')->map->count();
+                        @endphp
+                        @foreach($statusAtivos as $val => $label)
+                            <button class="status-filter-btn inline-flex items-center gap-1 px-3 py-1 text-[11px] font-bold rounded-full border transition-all {{ $val==='' ? 'border-secondary text-secondary' : 'border-white/10 text-gray-600 hover:border-white/25 hover:text-gray-300' }}" data-status="{{ $val }}">
+                                {{ $label }}
+                                @if($val !== '' && isset($countAtivos[$val]))
+                                    <span class="bg-white/10 px-1.5 py-0.5 rounded-full text-[9px]">{{ $countAtivos[$val] }}</span>
+                                @endif
+                            </button>
+                        @endforeach
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[540px]">
+                        <table class="w-full min-w-[640px]">
                             <thead>
                                 <tr class="border-b border-white/[0.03]">
                                     <th class="th">Pedido</th>
                                     <th class="th">Cliente</th>
+                                    <th class="th">Hora</th>
                                     <th class="th">Pagamento</th>
                                     <th class="th">Status</th>
                                     <th class="th text-center">Detalhes</th>
                                     <th class="th text-right">Total</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/[0.03]">
-                                @forelse($pedidosRecentes as $pedido)
-                                    @include('admin._pedido_row', ['pedido' => $pedido])
+                            <tbody id="pedidos-body" class="divide-y divide-white/[0.03]">
+                                @forelse($pedidosHoje_lista as $pedido)
+                                    @include('admin._pedido_row', ['pedido' => $pedido, 'showDate' => true])
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center py-10 text-gray-600 text-sm">Nenhum pedido ainda.
+                                        <td colspan="7" class="text-center py-14 text-gray-700 text-sm">
+                                            <span class="material-symbols-outlined text-[38px] block mb-2 text-gray-800">coffee</span>
+                                            Nenhum pedido hoje ainda.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -422,62 +527,27 @@
                         </table>
                     </div>
                 </div>
-            </div>
 
-            {{-- ═══════════ PEDIDOS ═══════════ --}}
-            <div id="section-pedidos" class="section animate-fade-up">
-                <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04]">
-                    {{-- Filtros --}}
-                    <div class="px-4 md:px-5 py-4 border-b border-white/[0.04] space-y-3">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                            <h2 class="font-bold text-white text-sm">Todos os Pedidos</h2>
-                            <div class="relative">
-                                <span
-                                    class="material-symbols-outlined text-[16px] text-gray-600 absolute left-3 top-1/2 -translate-y-1/2">search</span>
-                                <input id="pedido-search" type="text" placeholder="Buscar pedido / cliente…"
-                                    class="w-full sm:w-56 bg-black/30 border border-white/[0.06] text-white text-xs rounded-full pl-9 pr-4 py-2
-                                       focus:outline-none focus:border-secondary/40 placeholder-gray-700 transition-all">
-                            </div>
+                {{-- PAINEL: Histórico --}}
+                <div id="painel-historico" class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] hidden">
+                    <div class="px-4 md:px-5 py-4 border-b border-white/[0.04] flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                        <div>
+                            <h2 class="font-bold text-white text-sm">Histórico de Pedidos</h2>
+                            <p class="text-[11px] text-gray-600">Pedidos finalizados — apenas visualização</p>
                         </div>
-                        {{-- Filtro data --}}
-                        <div class="flex flex-wrap gap-2 items-center">
-                            <div
-                                class="flex items-center gap-1.5 bg-black/30 border border-white/[0.06] rounded-full px-3 py-1.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="flex items-center gap-1.5 bg-black/30 border border-white/[0.06] rounded-full px-3 py-1.5">
                                 <span class="material-symbols-outlined text-gray-600 text-[14px]">calendar_today</span>
-                                <input id="filtro-data-ini" type="date"
-                                    class="bg-transparent text-[11px] text-gray-400 focus:outline-none focus:text-white">
+                                <input id="filtro-data-ini" type="date" class="bg-transparent text-[11px] text-gray-400 focus:outline-none focus:text-white">
                             </div>
                             <span class="text-gray-700 text-xs">até</span>
-                            <div
-                                class="flex items-center gap-1.5 bg-black/30 border border-white/[0.06] rounded-full px-3 py-1.5">
+                            <div class="flex items-center gap-1.5 bg-black/30 border border-white/[0.06] rounded-full px-3 py-1.5">
                                 <span class="material-symbols-outlined text-gray-600 text-[14px]">calendar_today</span>
-                                <input id="filtro-data-fim" type="date"
-                                    class="bg-transparent text-[11px] text-gray-400 focus:outline-none focus:text-white">
+                                <input id="filtro-data-fim" type="date" class="bg-transparent text-[11px] text-gray-400 focus:outline-none focus:text-white">
                             </div>
-                            <button id="btn-limpar-data"
-                                class="text-[11px] text-gray-600 hover:text-secondary transition-colors">Limpar</button>
-                        </div>
-                        {{-- Pills de status --}}
-                        <div class="flex gap-2 flex-wrap">
-                            @php
-                                $statusOpts = ['' => 'Todos', 'pendente' => 'Pendente', 'confirmado' => 'Confirmado', 'preparando' => 'Preparando', 'saiu_para_entrega' => 'Saiu p/ Entrega', 'entregue' => 'Entregue', 'cancelado' => 'Cancelado'];
-                                $statusCounts = $pedidosRecentes->groupBy('status')->map->count();
-                            @endphp
-                            @foreach($statusOpts as $val => $label)
-                                <button
-                                    class="status-filter-btn inline-flex items-center gap-1 px-3 py-1 text-[11px] font-bold rounded-full border transition-all
-                                    {{ $val === '' ? 'border-secondary text-secondary' : 'border-white/10 text-gray-600 hover:border-white/25 hover:text-gray-300' }}"
-                                    data-status="{{ $val }}">
-                                    {{ $label }}
-                                    @if($val !== '' && isset($statusCounts[$val]))
-                                        <span
-                                            class="bg-white/10 px-1.5 py-0.5 rounded-full text-[9px]">{{ $statusCounts[$val] }}</span>
-                                    @endif
-                                </button>
-                            @endforeach
+                            <button id="btn-limpar-data" class="text-[11px] text-gray-600 hover:text-secondary transition-colors">Limpar</button>
                         </div>
                     </div>
-                    {{-- Tabela --}}
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[640px]">
                             <thead>
@@ -491,18 +561,22 @@
                                     <th class="th text-right">Total</th>
                                 </tr>
                             </thead>
-                            <tbody id="pedidos-body" class="divide-y divide-white/[0.03]">
-                                @forelse($pedidosRecentes as $pedido)
-                                    @include('admin._pedido_row', ['pedido' => $pedido, 'showDate' => true])
+                            <tbody id="historico-body" class="divide-y divide-white/[0.03]">
+                                @forelse($pedidosHistorico as $pedido)
+                                    @include('admin._pedido_row', ['pedido' => $pedido, 'showDate' => true, 'readonly' => true])
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center py-10 text-gray-600 text-sm">Nenhum pedido.</td>
+                                        <td colspan="7" class="text-center py-14 text-gray-700 text-sm">
+                                            <span class="material-symbols-outlined text-[38px] block mb-2 text-gray-800">inventory_2</span>
+                                            Nenhum pedido no histórico.
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
+
             </div>
 
             {{-- ═══════════ PRODUTOS ═══════════ --}}
@@ -641,7 +715,7 @@
                 </div>
             </div>
 
-            {{-- ═══════════ AVALIAÇÕES ═══════════ --}}
+            {{-- ═══════════ AVALIAÇÕES (oculto) ═══════════ --}}
             <div id="section-avaliacoes" class="section animate-fade-up space-y-5">
                 {{-- KPIs de avaliações --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
@@ -705,79 +779,51 @@
                 </div>
             </div>
 
-            {{-- ═══════════ USUÁRIOS ═══════════ --}}
-            <div id="section-usuarios" class="section animate-fade-up">
-                <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] overflow-hidden">
-                    <div class="px-4 md:px-5 py-4 border-b border-white/[0.04] space-y-3">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                            <h2 class="font-bold text-white text-sm">Gestão de Usuários</h2>
-                            <div class="relative">
-                                <span
-                                    class="material-symbols-outlined text-[16px] text-gray-600 absolute left-3 top-1/2 -translate-y-1/2">search</span>
-                                <input id="usuario-search" type="text" placeholder="Buscar usuário / e-mail…"
-                                    class="w-full sm:w-56 bg-black/30 border border-white/[0.06] text-white text-xs rounded-full pl-9 pr-4 py-2 focus:outline-none focus:border-secondary/40 placeholder-gray-700 transition-all">
-                            </div>
-                        </div>
+            {{-- ═══════════ ZONAS DE ENTREGA ═══════════ --}}
+            <div id="section-entrega" class="section animate-fade-up space-y-5">
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-white text-lg">Zonas de Entrega</h2>
+                        <p class="text-[11px] text-gray-600 mt-0.5">Defina bairros e taxas de frete por zona</p>
                     </div>
+                    <button id="btn-nova-zona"
+                        class="flex items-center gap-1.5 px-4 py-2 bg-secondary text-primary text-[12px] font-bold rounded-full hover:bg-[#c2884a] transition-all shadow-md">
+                        <span class="material-symbols-outlined text-[16px]">add</span> Nova Zona
+                    </button>
+                </div>
+
+                <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[560px]">
+                        <table class="w-full min-w-[520px]">
                             <thead>
                                 <tr class="border-b border-white/[0.03]">
-                                    <th class="th">Usuário</th>
-                                    <th class="th">E-mail</th>
-                                    <th class="th hidden md:table-cell">Telefone</th>
-                                    <th class="th text-center">Pedidos</th>
-                                    <th class="th text-center">Perfil</th>
-                                    <th class="th text-center">Ação</th>
+                                    <th class="th">Zona</th>
+                                    <th class="th">Bairros Cobertos</th>
+                                    <th class="th text-center">Frete Grátis Acima</th>
+                                    <th class="th text-right">Taxa</th>
+                                    <th class="th text-center">Status</th>
+                                    <th class="th text-center">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="usuarios-tbody" class="divide-y divide-white/[0.03]">
-                                @php $todosUsuarios = \App\Models\User::withCount('pedidos')->latest()->get(); @endphp
-                                @forelse($todosUsuarios as $usuario)
-                                    <tr class="hover:bg-white/[0.015] transition-colors"
-                                        data-usuario="{{ strtolower($usuario->name . ' ' . $usuario->email) }}">
-                                        <td class="td">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary font-bold text-xs shrink-0">
-                                                    {{ strtoupper(substr($usuario->name, 0, 2)) }}
-                                                </div>
-                                                <span class="font-semibold text-white text-sm">{{ $usuario->name }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="td text-gray-500 text-xs">{{ $usuario->email }}</td>
-                                        <td class="td text-gray-500 text-xs hidden md:table-cell">
-                                            {{ $usuario->phone ?? '—' }}</td>
-                                        <td class="td text-center font-bold text-gray-300">{{ $usuario->pedidos_count }}
-                                        </td>
-                                        <td class="td text-center">
-                                            <span id="usuario-badge-{{ $usuario->id }}"
-                                                class="badge {{ $usuario->is_admin ? 'bg-secondary/10 text-secondary' : 'bg-white/5 text-gray-500' }}">
-                                                <span
-                                                    class="material-symbols-outlined text-[12px]">{{ $usuario->is_admin ? 'admin_panel_settings' : 'person' }}</span>
-                                                {{ $usuario->is_admin ? 'Admin' : 'Cliente' }}
-                                            </span>
-                                        </td>
-                                        <td class="td text-center">
-                                            @if($usuario->id !== Auth::id())
-                                                <button
-                                                    class="btn-toggle-admin px-3 py-1 text-[11px] font-bold border border-white/10 text-gray-500 hover:border-secondary/40 hover:text-secondary rounded-full transition-all"
-                                                    data-id="{{ $usuario->id }}"
-                                                    data-admin="{{ $usuario->is_admin ? '1' : '0' }}">
-                                                    {{ $usuario->is_admin ? 'Remover Admin' : 'Tornar Admin' }}
-                                                </button>
-                                            @else
-                                                <span class="text-[11px] text-gray-700 italic">Você</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-10 text-gray-600 text-sm">Nenhum usuário.</td>
-                                    </tr>
-                                @endforelse
+                            <tbody id="zonas-tbody" class="divide-y divide-white/[0.03]">
+                                <tr>
+                                    <td colspan="6" class="text-center py-10 text-gray-600 text-sm">
+                                        <span class="material-symbols-outlined text-[30px] block mb-2 text-gray-800">local_shipping</span>
+                                        Nenhuma zona cadastrada ainda.
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div class="bg-[#1d0e0b] border border-secondary/20 rounded-2xl p-4 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-secondary text-[20px] mt-0.5 shrink-0">info</span>
+                    <div class="text-[11px] text-gray-500 space-y-1">
+                        <p><span class="text-gray-300 font-bold">Como funciona:</span> Ao fazer um pedido, o sistema identifica o bairro do endereço de entrega e busca a zona correspondente.</p>
+                        <p>Se o bairro não estiver em nenhuma zona, o pedido será bloqueado com uma mensagem ao cliente.</p>
+                        <p><span class="text-secondary font-bold">Frete Grátis:</span> Se o subtotal atingir o valor mínimo configurado na zona, a taxa será automaticamente zerada.</p>
                     </div>
                 </div>
             </div>
@@ -1015,6 +1061,215 @@
             </div>
         </div>
     </div>
+
+    {{-- MODAL: Confirmação Customizada --}}
+    <div id="modal-confirm" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-[#120601] rounded-2xl border border-white/[0.06] w-full max-w-sm shadow-2xl animate-fade-up">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
+                </div>
+                <h3 class="font-bold text-white text-lg mb-2">Atenção!</h3>
+                <p id="modal-confirm-msg" class="text-sm text-gray-400 mb-6">Você tem certeza disso?</p>
+                <div class="flex items-center gap-3 w-full">
+                    <button id="modal-confirm-cancel" class="flex-1 px-4 py-2.5 text-xs font-bold text-gray-400 bg-white/5 border border-white/10 rounded-xl hover:text-white hover:bg-white/10 transition-all">Cancelar</button>
+                    <button id="modal-confirm-ok" class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-red-500/80 hover:bg-red-500 rounded-xl transition-all shadow-lg shadow-red-500/20">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Acessibilidade --}}
+    @include('partials.accessibility')
+
+    {{-- MODAL: Zona de Entrega (Criar / Editar) --}}
+    <div id="modal-zona" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-[#120601] rounded-2xl border border-white/[0.06] w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh]">
+            <div class="p-5 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+                <div>
+                    <h3 id="modal-zona-titulo" class="font-bold text-white text-base">Nova Zona de Entrega</h3>
+                    <p class="text-[11px] text-gray-600 mt-0.5">Configure os bairros e a taxa de frete</p>
+                </div>
+                <button id="modal-zona-close" class="text-gray-600 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-full">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-5">
+                <form id="form-zona" class="space-y-4">
+                    <input type="hidden" id="zona-edit-id" value="">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1.5">Nome da Zona *</label>
+                        <input id="f-zona-nome" type="text" required placeholder="Ex: Zona Centro"
+                            class="w-full bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-secondary/40 placeholder-gray-700">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1.5">Taxa de Entrega (R$) *</label>
+                            <input id="f-zona-taxa" type="number" step="0.01" min="0" required placeholder="10.00"
+                                class="w-full bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-secondary/40 placeholder-gray-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1.5">Frete Grátis acima de (R$)</label>
+                            <input id="f-zona-frete-gratis" type="number" step="0.01" min="0" placeholder="Opcional"
+                                class="w-full bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-secondary/40 placeholder-gray-700">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1.5">Bairros Cobertos *</label>
+                        <p class="text-[10px] text-gray-600 mb-2">Digite um bairro por linha. A comparação ignora maiúsculas/minúsculas.</p>
+                        <textarea id="f-zona-bairros" rows="5" required placeholder="Centro&#10;Jardim América&#10;Vila Nova&#10;Ipiranga"
+                            class="w-full bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-secondary/40 placeholder-gray-700 resize-none font-mono"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-1">
+                        <button type="button" id="modal-zona-cancel"
+                            class="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-white border border-white/10 hover:border-white/25 rounded-full transition-colors">Cancelar</button>
+                        <button type="submit" id="btn-salvar-zona"
+                            class="px-6 py-2.5 bg-secondary text-primary text-xs font-bold rounded-full hover:bg-[#c2884a] transition-all shadow-md">Salvar Zona</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Zonas de Entrega ──
+    (function() {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+        const tbody = document.getElementById('zonas-tbody');
+        const modal = document.getElementById('modal-zona');
+        const fNome = document.getElementById('f-zona-nome');
+        const fTaxa = document.getElementById('f-zona-taxa');
+        const fFreteGratis = document.getElementById('f-zona-frete-gratis');
+        const fBairros = document.getElementById('f-zona-bairros');
+        const editId = document.getElementById('zona-edit-id');
+        const titulo = document.getElementById('modal-zona-titulo');
+
+        function fmtBRL(v) {
+            return parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderZonas(zonas) {
+            if (!zonas.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-600 text-sm">
+                    <span class="material-symbols-outlined text-[30px] block mb-2 text-gray-800">local_shipping</span>
+                    Nenhuma zona cadastrada ainda.
+                </td></tr>`;
+                return;
+            }
+            tbody.innerHTML = zonas.map(z => `
+                <tr class="hover:bg-white/[0.015] transition-colors" id="zona-row-${z.id}">
+                    <td class="td font-semibold text-white">${z.nome}</td>
+                    <td class="td text-gray-500 text-xs max-w-xs">
+                        <div class="flex flex-wrap gap-1">
+                            ${z.bairros.map(b => `<span class="bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-[10px]">${b}</span>`).join('')}
+                        </div>
+                    </td>
+                    <td class="td text-center text-xs ${z.frete_gratis_acima ? 'text-green-400 font-bold' : 'text-gray-700'}">
+                        ${z.frete_gratis_acima ? 'R$ ' + fmtBRL(z.frete_gratis_acima) : '—'}
+                    </td>
+                    <td class="td text-right font-bold text-secondary">R$ ${fmtBRL(z.taxa)}</td>
+                    <td class="td text-center">
+                        <span class="badge ${z.ativo ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}">
+                            <span class="material-symbols-outlined text-[12px]">${z.ativo ? 'check_circle' : 'cancel'}</span>
+                            ${z.ativo ? 'Ativa' : 'Inativa'}
+                        </span>
+                    </td>
+                    <td class="td text-center">
+                        <div class="flex items-center gap-2 justify-center">
+                            <button class="btn-editar-zona p-1.5 text-gray-600 hover:text-secondary transition-colors rounded-full hover:bg-secondary/10"
+                                title="Editar" data-id="${z.id}"
+                                data-nome="${z.nome}" data-taxa="${z.taxa}"
+                                data-frete="${z.frete_gratis_acima ?? ''}"
+                                data-bairros="${encodeURIComponent(z.bairros.join('\n'))}">
+                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button class="btn-deletar-zona p-1.5 text-gray-700 hover:text-red-400 transition-colors rounded-full hover:bg-red-500/10"
+                                title="Excluir" data-id="${z.id}" data-nome="${z.nome}">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+            bindZonaActions();
+        }
+
+        async function loadZonas() {
+            const res = await fetch('/admin/zonas-entrega', { headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+            const zonas = await res.json();
+            renderZonas(zonas);
+        }
+
+        function openModal(editing = false, data = {}) {
+            editId.value = data.id ?? '';
+            titulo.textContent = editing ? 'Editar Zona de Entrega' : 'Nova Zona de Entrega';
+            fNome.value = data.nome ?? '';
+            fTaxa.value = data.taxa ?? '';
+            fFreteGratis.value = data.frete ?? '';
+            fBairros.value = data.bairros ?? '';
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() { modal.classList.add('hidden'); }
+
+        document.getElementById('btn-nova-zona')?.addEventListener('click', () => openModal(false));
+        document.getElementById('modal-zona-close')?.addEventListener('click', closeModal);
+        document.getElementById('modal-zona-cancel')?.addEventListener('click', closeModal);
+        modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        document.getElementById('form-zona')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-zona');
+            btn.disabled = true; btn.textContent = 'Salvando…';
+
+            const id = editId.value;
+            const bairros = fBairros.value.split('\n').map(b => b.trim()).filter(Boolean);
+            const body = JSON.stringify({
+                nome: fNome.value.trim(),
+                taxa: parseFloat(fTaxa.value),
+                bairros,
+                frete_gratis_acima: fFreteGratis.value ? parseFloat(fFreteGratis.value) : null,
+                ativo: true,
+            });
+
+            const url  = id ? `/admin/zonas-entrega/${id}` : '/admin/zonas-entrega';
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }, body });
+
+            if (res.ok) {
+                closeModal();
+                loadZonas();
+            } else {
+                alert('Erro ao salvar zona. Verifique os dados.');
+            }
+            btn.disabled = false; btn.textContent = 'Salvar Zona';
+        });
+
+        function bindZonaActions() {
+            document.querySelectorAll('.btn-editar-zona').forEach(btn => {
+                btn.onclick = () => openModal(true, {
+                    id: btn.dataset.id,
+                    nome: btn.dataset.nome,
+                    taxa: btn.dataset.taxa,
+                    frete: btn.dataset.frete,
+                    bairros: decodeURIComponent(btn.dataset.bairros),
+                });
+            });
+            document.querySelectorAll('.btn-deletar-zona').forEach(btn => {
+                btn.onclick = async () => {
+                    if (!confirm(`Excluir a zona "${btn.dataset.nome}"?`)) return;
+                    const res = await fetch(`/admin/zonas-entrega/${btn.dataset.id}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                    });
+                    if (res.ok) loadZonas();
+                };
+            });
+        }
+
+        // Carregar zonas ao clicar no menu
+        document.querySelector('.sidebar-link[data-section="entrega"]')?.addEventListener('click', loadZonas);
+    })();
+    </script>
 
 </body>
 

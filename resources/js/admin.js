@@ -16,13 +16,44 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showToast(msg, type = 'success') {
-        const bg   = type === 'success' ? 'bg-green-500/90' : type === 'error' ? 'bg-red-500/90' : 'bg-blue-500/90';
-        const icon = type === 'success' ? 'check_circle'   : type === 'error' ? 'error'         : 'info';
         const toast = document.createElement('div');
-        toast.className = `fixed bottom-6 right-6 z-[999] ${bg} text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-2 animate-fade-up`;
-        toast.innerHTML = `<span class="material-symbols-outlined text-[18px]">${icon}</span>${msg}`;
+        toast.className = `fixed bottom-4 right-4 text-white px-5 py-3 rounded-lg shadow-lg font-bold text-sm transform translate-y-full opacity-0 transition-all duration-300 z-[9999] flex items-center gap-2 border ${
+            type === 'success' ? 'bg-secondary/90 border-secondary/50 text-primary' : 'bg-red-500/90 border-red-500/50'
+        }`;
+        toast.innerHTML = `<span class="material-symbols-outlined text-[18px]">${type === 'success' ? 'check_circle' : 'error'}</span> ${msg}`;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
+        setTimeout(() => { toast.classList.remove('translate-y-full', 'opacity-0'); }, 10);
+        setTimeout(() => {
+            toast.classList.add('translate-y-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Modal de Confirmação Customizado
+    const modalConfirm    = document.getElementById('modal-confirm');
+    const modalConfirmMsg = document.getElementById('modal-confirm-msg');
+    const btnConfirmOk    = document.getElementById('modal-confirm-ok');
+    const btnConfirmCancel= document.getElementById('modal-confirm-cancel');
+
+    function customConfirm(message) {
+        return new Promise((resolve) => {
+            if (!modalConfirm) return resolve(confirm(message)); // fallback
+            
+            modalConfirmMsg.textContent = message;
+            modalConfirm.classList.remove('hidden');
+            
+            const handleOk = () => { cleanup(); resolve(true); };
+            const handleCancel = () => { cleanup(); resolve(false); };
+            
+            function cleanup() {
+                modalConfirm.classList.add('hidden');
+                btnConfirmOk?.removeEventListener('click', handleOk);
+                btnConfirmCancel?.removeEventListener('click', handleCancel);
+            }
+            
+            btnConfirmOk?.addEventListener('click', handleOk);
+            btnConfirmCancel?.addEventListener('click', handleCancel);
+        });
     }
 
     const STATUS_LABELS  = { pendente:'Pendente', confirmado:'Confirmado', preparando:'Preparando', saiu_para_entrega:'Saiu p/ Entrega', entregue:'Entregue', cancelado:'Cancelado' };
@@ -33,10 +64,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const sideLinks = document.querySelectorAll('.sidebar-link[data-section]');
     const PAGE_META = {
         overview:   { title: 'Visão Geral',  sub: 'Resumo geral do seu negócio' },
-        pedidos:    { title: 'Pedidos',       sub: 'Gerencie e atualize os pedidos' },
+        pedidos:    { title: 'Pedidos',       sub: 'Pedidos ativos de hoje' },
         produtos:   { title: 'Produtos',      sub: 'Cadastre e edite seus produtos' },
         avaliacoes: { title: 'Avaliações',    sub: 'Feedback dos seus clientes' },
-        usuarios:   { title: 'Usuários',      sub: 'Controle de acesso' },
     };
 
     function activateSection(name) {
@@ -58,6 +88,24 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-jump]').forEach(btn => {
         btn.addEventListener('click', () => activateSection(btn.dataset.jump));
     });
+
+    // Abas de pedidos: Ativos / Histórico
+    const tabAtivos    = document.getElementById('tab-ativos');
+    const tabHistorico = document.getElementById('tab-historico');
+    const painelAtivos = document.getElementById('painel-ativos');
+    const painelHistorico = document.getElementById('painel-historico');
+
+    function setActiveTab(active, inactive, show, hide) {
+        active?.classList.add('active-tab', 'text-white');
+        active?.classList.remove('text-gray-500');
+        inactive?.classList.remove('active-tab', 'text-white');
+        inactive?.classList.add('text-gray-500');
+        show?.classList.remove('hidden');
+        hide?.classList.add('hidden');
+    }
+
+    tabAtivos?.addEventListener('click', () => setActiveTab(tabAtivos, tabHistorico, painelAtivos, painelHistorico));
+    tabHistorico?.addEventListener('click', () => setActiveTab(tabHistorico, tabAtivos, painelHistorico, painelAtivos));
 
     const btnMobileMenu  = document.getElementById('btn-mobile-menu');
     const sidebarDrawer  = document.getElementById('sidebar-drawer');
@@ -88,37 +136,74 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let chartFat;
     function buildFatChart(period) {
-        const raw    = period === 7 ? data.fat7 : data.fat30;
-        const labels = raw.map(d => d.label);
-        const values = raw.map(d => d.total);
+        const rawFat = period === 7 ? data.fat7 : data.fat30;
+        const rawVol = period === 7 ? data.vol7d : data.vol30d;
+        
+        const labels = rawFat.map(d => d.label);
+        const fatValues = rawFat.map(d => d.total);
+        const volValues = rawVol ? rawVol.map(d => d.total) : [];
+
         if (chartFat) chartFat.destroy();
         const ctx = document.getElementById('chartFaturamento')?.getContext('2d');
         if (!ctx) return;
         chartFat = new Chart(ctx, {
-            type: 'line',
-            data: { labels, datasets: [{
-                label: 'Faturamento (R$)',
-                data: values,
-                borderColor: '#d69c5e',
-                backgroundColor: 'rgba(214,156,94,0.06)',
-                borderWidth: 2.5,
-                pointBackgroundColor: '#d69c5e',
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                tension: 0.4,
-                fill: true,
-            }]},
+            data: { 
+                labels, 
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Faturamento (R$)',
+                        data: fatValues,
+                        borderColor: '#d69c5e',
+                        backgroundColor: 'rgba(214,156,94,0.06)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#d69c5e',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Qtd de Pedidos',
+                        data: volValues,
+                        backgroundColor: 'rgba(96,165,250,0.2)',
+                        borderColor: '#60a5fa',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
             options: {
                 ...CHART_BASE_OPTIONS,
                 plugins: { ...CHART_BASE_OPTIONS.plugins,
                     tooltip: { ...CHART_BASE_OPTIONS.plugins.tooltip,
-                        callbacks: { label: ctx => ' R$ ' + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits:2 }) }
+                        callbacks: { 
+                            label: ctx => {
+                                if (ctx.datasetIndex === 0) return ' R$ ' + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits:2 });
+                                return ` ${ctx.parsed.y} pedidos`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     x: { grid:{ color:'rgba(255,255,255,0.03)' }, ticks:{ color:'#4b5563', font:{ size:10 } } },
-                    y: { grid:{ color:'rgba(255,255,255,0.03)' }, ticks:{ color:'#4b5563', font:{ size:10 },
-                        callback: v => 'R$' + v.toLocaleString('pt-BR') } }
+                    y: { 
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid:{ color:'rgba(255,255,255,0.03)' }, 
+                        ticks:{ color:'#4b5563', font:{ size:10 }, callback: v => 'R$' + v.toLocaleString('pt-BR') } 
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#60a5fa', font:{ size:10 }, precision: 0 }
+                    }
                 }
             }
         });
@@ -191,6 +276,77 @@ document.addEventListener('DOMContentLoaded', function () {
                 scales: {
                     x: { grid: { display: false }, ticks: { color: '#4b5563', font:{ size:10 } } },
                     y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color:'#4b5563', font:{ size:10 }, callback: v => 'R$' + v.toLocaleString('pt-BR') } }
+                }
+            }
+        });
+    })();
+
+    (() => {
+        const topProdData = data.topProd || [];
+        if (!topProdData.length) return;
+        const ctx = document.getElementById('chartTopProdutos')?.getContext('2d');
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: topProdData.map(p => p.nome),
+                datasets: [{
+                    label: 'Unidades Vendidas',
+                    data: topProdData.map(p => p.total),
+                    backgroundColor: 'rgba(245,158,11,0.7)',
+                    borderColor: '#f59e0b',
+                    borderWidth: 1.5,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                ...CHART_BASE_OPTIONS,
+                indexAxis: 'y',
+                plugins: { ...CHART_BASE_OPTIONS.plugins,
+                    tooltip: { ...CHART_BASE_OPTIONS.plugins.tooltip,
+                        callbacks: { label: ctx => ` ${ctx.parsed.x} unidades` }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#4b5563', font:{ size:10 } } },
+                    y: { grid: { display: false }, ticks: { color: '#4b5563', font:{ size:10 } } }
+                }
+            }
+        });
+    })();
+
+    (() => {
+        const volData = data.vol7d || [];
+        if (!volData.length) return;
+        const ctx = document.getElementById('chartVolumePedidos')?.getContext('2d');
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: volData.map(v => v.label),
+                datasets: [{
+                    label: 'Qtd de Pedidos',
+                    data: volData.map(v => v.total),
+                    borderColor: '#60a5fa',
+                    backgroundColor: 'rgba(96,165,250,0.06)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#60a5fa',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                ...CHART_BASE_OPTIONS,
+                plugins: { ...CHART_BASE_OPTIONS.plugins,
+                    tooltip: { ...CHART_BASE_OPTIONS.plugins.tooltip,
+                        callbacks: { label: ctx => ` ${ctx.parsed.y} pedidos` }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#4b5563', font:{ size:10 } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#4b5563', font:{ size:10 }, precision: 0 } }
                 }
             }
         });
@@ -282,15 +438,40 @@ document.addEventListener('DOMContentLoaded', function () {
             const newStatus = this.dataset.status;
             const res = await patchJson(`/admin/pedidos/${currentOrderId}/status`, { status: newStatus });
             if (res.ok) {
-                const badge = document.getElementById(`badge-status-${currentOrderId}`);
-                if (badge) {
+                // Atualiza o badge visual do status em todas as rows com esse ID
+                document.querySelectorAll(`[id="badge-status-${currentOrderId}"]`).forEach(badge => {
                     badge.className = `btn-change-status status-pill ${STATUS_CLASSES[newStatus] || ''}`;
                     badge.dataset.id = currentOrderId;
                     badge.innerHTML = `<span class="material-symbols-outlined text-[13px]">${STATUS_ICONS[newStatus]}</span>${STATUS_LABELS[newStatus]}<span class="material-symbols-outlined text-[11px]">expand_more</span>`;
-                }
-                document.querySelector(`tr[data-id="${currentOrderId}"]`)?.setAttribute('data-status', newStatus);
+                });
+                // Atualiza o data-status das rows
+                document.querySelectorAll(`tr[data-id="${currentOrderId}"]`).forEach(tr => {
+                    tr.setAttribute('data-status', newStatus);
+                });
+                // Recalcula os contadores das pílulas de filtro
+                const counts = {};
+                document.querySelectorAll('#pedidos-body tr[data-status]').forEach(tr => {
+                    const s = tr.dataset.status;
+                    counts[s] = (counts[s] || 0) + 1;
+                });
+                document.querySelectorAll('.status-filter-btn').forEach(pill => {
+                    const val = pill.dataset.status;
+                    if (!val) return; // pill "Todos" não tem contador
+                    let badge = pill.querySelector('span');
+                    if (counts[val]) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'bg-white/10 px-1.5 py-0.5 rounded-full text-[9px]';
+                            pill.appendChild(badge);
+                        }
+                        badge.textContent = counts[val];
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                });
                 closeModalStatus();
                 showToast('Status atualizado!');
+                if (typeof pollAdminOrders === 'function') pollAdminOrders();
             } else {
                 showToast('Erro ao atualizar status.', 'error');
             }
@@ -335,8 +516,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.btn-toggle-destaque').forEach(bindToggleDestaque);
 
     document.querySelectorAll('.btn-toggle-admin').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            if (!confirm('Alterar perfil deste usuário?')) return;
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            if (!(await customConfirm('Alterar perfil deste usuário?'))) return;
             const id  = this.dataset.id;
             const res = await patchJson(`/admin/usuarios/${id}/toggle-admin`, {});
             if (res.ok) {
@@ -709,10 +891,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindDeletarProduto(btn) {
-        btn.addEventListener('click', async function() {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
             const id   = this.dataset.id;
             const nome = this.dataset.nome || `#${id}`;
-            if (!confirm(`Excluir o produto "${nome}"? Esta ação não pode ser desfeita.`)) return;
+            if (!(await customConfirm(`Excluir o produto "${nome}"? Esta ação não pode ser desfeita.`))) return;
             const res = await deleteJson(`/admin/produtos/${id}`);
             if (res.ok) {
                 document.getElementById(`produto-row-${id}`)?.remove();
@@ -725,10 +908,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.btn-deletar-produto').forEach(bindDeletarProduto);
 
     document.querySelectorAll('.btn-deletar-categoria').forEach(btn => {
-        btn.addEventListener('click', async function() {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
             const id   = this.dataset.id;
             const nome = this.dataset.nome || `#${id}`;
-            if (!confirm(`Excluir a categoria "${nome}"? Só é possível se não houver produtos vinculados.`)) return;
+            if (!(await customConfirm(`Excluir a categoria "${nome}"? Só é possível se não houver produtos vinculados.`))) return;
             const res = await deleteJson(`/admin/categorias/${id}`);
             if (res.ok) {
                 document.getElementById(`categoria-row-${id}`)?.remove();
@@ -754,15 +938,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const METODO_LABELS = { pix:'PIX', cartao_credito:'Crédito', cartao_debito:'Débito', dinheiro:'Dinheiro' };
         const itensHtml = p.itens.map(i => `
-            <div class="flex items-center gap-3 py-2 border-b border-white/[0.04]">
-                ${i.imagem
-                    ? `<img src="${i.imagem}" class="w-10 h-10 rounded-lg object-cover bg-gray-800 shrink-0">`
-                    : `<div class="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-gray-700 text-[16px]">image</span></div>`}
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-white truncate">${i.nome}</p>
-                    <p class="text-[11px] text-gray-600">x${i.quantidade} × R$ ${i.preco}</p>
+            <div class="flex flex-col gap-1 py-2 border-b border-white/[0.04]">
+                <div class="flex items-center gap-3">
+                    ${i.imagem
+                        ? `<img src="${i.imagem}" class="w-10 h-10 rounded-lg object-cover bg-gray-800 shrink-0">`
+                        : `<div class="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-gray-700 text-[16px]">image</span></div>`}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-white truncate">${i.nome}</p>
+                        <p class="text-[11px] text-gray-600">x${i.quantidade} × R$ ${i.preco}</p>
+                    </div>
+                    <span class="text-sm font-bold text-secondary shrink-0">R$ ${(parseFloat(i.preco.replace(',','.')) * i.quantidade).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
                 </div>
-                <span class="text-sm font-bold text-secondary shrink-0">R$ ${(parseFloat(i.preco.replace(',','.')) * i.quantidade).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
+                ${i.observacao ? `
+                    <div class="mt-1 bg-amber-900/10 border border-amber-800/30 rounded-lg p-2 ml-13">
+                        <p class="text-[10px] text-amber-500 uppercase tracking-widest mb-0.5">Anotação do Cliente</p>
+                        <p class="text-[11px] text-gray-300">${i.observacao}</p>
+                    </div>
+                ` : ''}
             </div>`).join('');
 
         detailContent.innerHTML = `
@@ -809,4 +1001,153 @@ document.addEventListener('DOMContentLoaded', function () {
             loadOrderDetails(this.dataset.id);
         });
     });
+
+    let lastKnownOrderId = 0;
+    
+    function playBeep() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 200);
+        } catch(e) {}
+    }
+
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    async function pollAdminOrders() {
+        try {
+            const res = await fetch('/admin/pedidos/api/ativos');
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            if (lastKnownOrderId > 0 && data.latest_id > lastKnownOrderId) {
+                playBeep();
+                showNewOrderAlert(data.latest_id);
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Novo Pedido!', { body: 'Um novo pedido acabou de chegar na cozinha.', icon: '/favicon.ico' });
+                }
+            }
+            lastKnownOrderId = Math.max(lastKnownOrderId, data.latest_id);
+
+            const tbody = document.getElementById('pedidos-body');
+            if (tbody && data.html) {
+                tbody.innerHTML = data.html;
+                bindOrderActionButtons();
+            }
+
+            Object.entries(data.status_counts).forEach(([status, count]) => {
+                const btn = document.querySelector(`.status-filter-btn[data-status="${status}"]`);
+                if (btn) {
+                    let badge = btn.querySelector('span');
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'bg-white/10 px-1.5 py-0.5 rounded-full text-[9px]';
+                        btn.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                }
+            });
+
+            const btnTab = document.getElementById('tab-ativos');
+            if (btnTab) {
+                let badge = btnTab.querySelector('span:not(.material-symbols-outlined)');
+                if (data.count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'bg-secondary/20 text-secondary px-2 py-0.5 rounded-full text-[10px] ml-1';
+                        btnTab.appendChild(badge);
+                    }
+                    badge.textContent = data.count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+
+            if (data.pedidos_atrasados_count !== undefined) {
+                const alertAtrasados = document.getElementById('alert-pedidos-atrasados');
+                const countSpan = document.getElementById('count-atrasados');
+                if (alertAtrasados && countSpan) {
+                    if (data.pedidos_atrasados_count > 0) {
+                        countSpan.textContent = data.pedidos_atrasados_count;
+                        alertAtrasados.classList.remove('hidden');
+                    } else {
+                        alertAtrasados.classList.add('hidden');
+                    }
+                }
+            }
+        } catch(e) {}
+    }
+
+    function bindOrderActionButtons() {
+        document.querySelectorAll('.btn-ver-detalhes-pedido').forEach(btn => {
+            btn.removeEventListener('click', btn._handler);
+            btn._handler = function() { loadOrderDetails(this.dataset.id); };
+            btn.addEventListener('click', btn._handler);
+        });
+        
+        document.querySelectorAll('.btn-change-status').forEach(btn => {
+            btn.removeEventListener('click', btn._statusModalHandler);
+            btn._statusModalHandler = function() {
+                currentOrderId = this.dataset.id;
+                const modalStatusId = document.getElementById('modal-status-id');
+                if (modalStatusId) modalStatusId.textContent = '#' + String(currentOrderId).padStart(4, '0');
+                document.getElementById('modal-status')?.classList.remove('hidden');
+            };
+            btn.addEventListener('click', btn._statusModalHandler);
+        });
+    }
+
+    function showNewOrderAlert(id) {
+        const alertId = `new-order-alert-${id}`;
+        if (document.getElementById(alertId)) return;
+
+        let container = document.getElementById('new-order-alerts-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'new-order-alerts-container';
+            container.className = 'fixed top-24 left-1/2 -translate-x-1/2 z-[10000] flex flex-col gap-3 items-center pointer-events-none w-full max-w-md px-4';
+            document.body.appendChild(container);
+        }
+
+        const alert = document.createElement('div');
+        alert.id = alertId;
+        alert.className = 'pointer-events-auto bg-secondary text-primary p-4 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border-2 border-white/30 flex items-center gap-4 w-full animate-fade-up ring-4 ring-secondary/20 relative overflow-hidden';
+        alert.innerHTML = `
+            <div class="absolute inset-0 bg-white/10 animate-pulse pointer-events-none"></div>
+            <div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center shrink-0 relative z-10">
+                <span class="material-symbols-outlined text-3xl text-primary animate-bounce">notifications_active</span>
+            </div>
+            <div class="flex-grow min-w-0 relative z-10">
+                <p class="font-black text-lg leading-tight uppercase tracking-tight">Novo Pedido!</p>
+                <p class="text-xs font-bold opacity-80">Mesa/Pedido #${String(id).padStart(4, '0')}</p>
+            </div>
+            <div class="flex gap-2 relative z-10">
+                <button class="btn-view bg-primary text-secondary px-4 py-2 rounded-xl font-black text-xs hover:scale-105 active:scale-95 transition-all shadow-lg">DETALHES</button>
+                <button class="btn-close text-primary/40 hover:text-primary transition-colors"><span class="material-symbols-outlined text-2xl">close</span></button>
+            </div>
+        `;
+
+        container.appendChild(alert);
+
+        alert.querySelector('.btn-view').onclick = () => {
+            loadOrderDetails(id);
+            alert.remove();
+        };
+        alert.querySelector('.btn-close').onclick = () => alert.remove();
+
+        setTimeout(() => { if (alert.parentElement) alert.remove(); }, 60000);
+    }
+
+    setInterval(pollAdminOrders, 10000);
+    setTimeout(pollAdminOrders, 1000);
+
 });

@@ -18,6 +18,25 @@ class ProfileController extends Controller
         return view('perfil', compact('user', 'addresses', 'pedidos'));
     }
 
+    public function apiPedidos()
+    {
+        $user = Auth::user();
+        $pedidos = $user->pedidos()->with(['itens.produto', 'pagamento', 'avaliacao'])->latest()->get();
+
+        $html = '';
+        foreach ($pedidos as $pedido) {
+            $html .= view('partials._pedido_perfil_card', ['pedido' => $pedido])->render();
+        }
+
+        // Retornar os statuses para podermos detectar se algum mudou
+        $statuses = $pedidos->pluck('status', 'id')->toArray();
+
+        return response()->json([
+            'html' => $html,
+            'statuses' => $statuses
+        ]);
+    }
+
     public function updateData(Request $request)
     {
         $request->validate([
@@ -64,9 +83,10 @@ class ProfileController extends Controller
         Auth::user()->enderecos()->create([
             'nome'         => $request->name,
             'cep'          => $request->cep,
+            'bairro'       => $request->neighborhood,
             'numero'       => $request->number,
-            'complemento'   => $request->complement,
-            'padrao'   => $isDefault,
+            'complemento'  => $request->complement,
+            'padrao'       => $isDefault,
         ]);
 
         return back()->with('success_endereco', 'Endereço adicionado com sucesso!');
@@ -106,11 +126,32 @@ class ProfileController extends Controller
            ->update([
                'nome'         => $request->name,
                'cep'          => $request->cep,
+               'bairro'       => $request->neighborhood,
                'numero'       => $request->number,
-               'complemento'   => $request->complement,
+               'complemento'  => $request->complement,
            ]);
 
     return back()->with('success_endereco', 'Endereço atualizado com sucesso!');
 }
+    public function cancelarPedido($id)
+    {
+        $pedido = \App\Models\Pedido::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
+        if ($pedido->status !== 'pendente') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este pedido já está em andamento. Para cancelar, por favor entre em contato com o restaurante.'
+            ], 400);
+        }
+
+        $pedido->status = 'cancelado';
+        $pedido->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pedido cancelado com sucesso.'
+        ]);
     }
+}

@@ -15,6 +15,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CardapioController;
 use App\Http\Controllers\CarrinhoController;
+use App\Http\Controllers\PagamentoController;
 
 Route::get('/', function () {
     $destaques = \App\Models\Produto::where('destaque', true)
@@ -56,6 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/perfil/enderecos/{id}', [ProfileController::class, 'updateAddress'])->name('perfil.enderecos.update');
 
     // Rotas do Carrinho
+    Route::get('/pedidos/api', [ProfileController::class, 'apiPedidos'])->name('perfil.pedidos.api');
+    Route::patch('/perfil/pedidos/{id}/cancelar', [ProfileController::class, 'cancelarPedido'])->name('perfil.pedidos.cancelar');
     Route::get('/carrinho', [CarrinhoController::class, 'index'])->name('carrinho');
     Route::post('/carrinho', [CarrinhoController::class, 'store'])->name('carrinho.store');
     Route::put('/carrinho/{id}', [CarrinhoController::class, 'update'])->name('carrinho.update');
@@ -63,6 +66,9 @@ Route::middleware('auth')->group(function () {
     
     // Rota de Checkout
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+
+    // Rota de Pagamento PIX (Mercado Pago)
+    Route::post('/pagamento/pix/{pedido}', [PagamentoController::class, 'criarPix'])->name('pagamento.pix');
 
     Route::post('/avaliacoes', function (\Illuminate\Http\Request $req) {
         $req->validate(['pedido_id' => 'required|integer', 'nota' => 'required|integer|min:1|max:5', 'comentario' => 'nullable|string|max:1000']);
@@ -81,6 +87,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Pedidos
     Route::get('/pedidos',                    [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
+    Route::get('/pedidos/api/ativos',         [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
     Route::patch('/pedidos/{id}/status',      [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
 
     // Produtos
@@ -96,14 +103,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/categorias',    [\App\Http\Controllers\AdminController::class, 'storeCategoria'])->name('categorias.store');
     Route::delete('/categorias/{id}', [\App\Http\Controllers\AdminController::class, 'destroyCategoria'])->name('categorias.destroy');
 
-    // Usuários
-    Route::get('/usuarios',                       [\App\Http\Controllers\AdminController::class, 'usuarios'])->name('usuarios');
-    Route::patch('/usuarios/{id}/toggle-admin',   [\App\Http\Controllers\AdminController::class, 'toggleAdmin'])->name('usuarios.toggleAdmin');
-
     // Avaliações
     Route::get('/avaliacoes',                        [\App\Http\Controllers\AdminController::class, 'avaliacoes'])->name('avaliacoes');
     Route::patch('/avaliacoes/{id}/responder',       [\App\Http\Controllers\AdminController::class, 'responderAvaliacao'])->name('avaliacoes.responder');
 
     // Detalhes de pedido
     Route::get('/pedidos/{id}/detalhes', [\App\Http\Controllers\AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
+
+    // Zonas de Entrega
+    Route::get('/zonas-entrega',           [\App\Http\Controllers\AdminController::class, 'indexZonas'])->name('zonas.index');
+    Route::post('/zonas-entrega',          [\App\Http\Controllers\AdminController::class, 'storeZona'])->name('zonas.store');
+    Route::put('/zonas-entrega/{id}',      [\App\Http\Controllers\AdminController::class, 'updateZona'])->name('zonas.update');
+    Route::delete('/zonas-entrega/{id}',   [\App\Http\Controllers\AdminController::class, 'destroyZona'])->name('zonas.destroy');
+    Route::post('/calcular-frete',         [\App\Http\Controllers\AdminController::class, 'calcularFrete'])->name('frete.calcular');
 });
+
+// Webhook do Mercado Pago (público — chamado pelo servidor do MP, não pelo usuário)
+Route::post('/webhook/mercadopago', [PagamentoController::class, 'webhook'])->name('webhook.mercadopago');

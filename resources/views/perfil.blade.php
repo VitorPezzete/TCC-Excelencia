@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Excelência - Minha Conta</title>
+<link rel="icon" type="image/png" href="/images/logo.png">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -203,49 +204,9 @@
                 <h1 class="font-display text-4xl font-bold text-white mb-2">Meus Pedidos</h1>
                 <p class="text-gray-400">Acompanhe o status e o histórico dos seus pedidos.</p>
             </div>
-            <div class="flex flex-col gap-4">
+            <div id="perfil-pedidos-list" class="flex flex-col gap-4">
                 @forelse($pedidos as $pedido)
-                    <div class="bg-[#261715] rounded-xl border border-gray-800 p-6 shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-3">
-                                <h3 class="font-bold text-xl text-white">Pedido #{{ str_pad($pedido->id, 4, '0', STR_PAD_LEFT) }}</h3>
-                                <span class="text-gray-400 text-sm">{{ $pedido->created_at->format('d M Y, H:i') }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                @php
-                                    $statusConfig = [
-                                        'pendente' => ['color' => 'bg-gray-500/20 text-gray-400', 'icon' => 'pending'],
-                                        'confirmado' => ['color' => 'bg-blue-500/20 text-blue-400', 'icon' => 'thumb_up'],
-                                        'preparando' => ['color' => 'bg-yellow-500/20 text-yellow-500', 'icon' => 'soup_kitchen'],
-                                        'saiu_para_entrega' => ['color' => 'bg-blue-500/20 text-blue-400', 'icon' => 'two_wheeler'],
-                                        'entregue' => ['color' => 'bg-green-500/20 text-green-400', 'icon' => 'check_circle'],
-                                        'cancelado' => ['color' => 'bg-red-500/20 text-red-500', 'icon' => 'cancel'],
-                                    ];
-                                    $config = $statusConfig[$pedido->status];
-                                @endphp
-                                <span class="{{ $config['color'] }} text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[14px]">{{ $config['icon'] }}</span>
-                                    {{ ucfirst(str_replace('_', ' ', $pedido->status)) }}
-                                </span>
-                            </div>
-                        </div>
-                            <div class="flex flex-col md:items-end gap-3">
-                                <div class="text-gray-400">Total: <span class="text-white font-bold text-lg">R$ {{ number_format($pedido->total, 2, ',', '.') }}</span></div>
-                                <div class="flex gap-2 flex-wrap">
-                                    <button class="btn-detalhes-pedido px-5 py-2 bg-transparent border border-secondary text-secondary hover:bg-secondary hover:text-background-dark font-bold rounded-full transition-colors text-sm" data-pedido='@json($pedido->load("itens.produto", "endereco"))'>Ver Detalhes</button>
-                                    @if($pedido->status === 'entregue')
-                                        <button class="btn-avaliar-pedido px-5 py-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 font-bold rounded-full transition-colors text-sm flex items-center gap-1.5"
-                                            data-pedido-id="{{ $pedido->id }}"
-                                            data-ja-avaliou="{{ $pedido->avaliacao ? '1' : '0' }}"
-                                            data-av-nota="{{ $pedido->avaliacao?->nota ?? '' }}"
-                                            data-av-comentario="{{ $pedido->avaliacao?->comentario ?? '' }}">
-                                            <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">star</span>
-                                            {{ $pedido->avaliacao ? 'Ver Avaliação' : 'Avaliar' }}
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                    </div>
+                    @include('partials._pedido_perfil_card', ['pedido' => $pedido])
                 @empty
                     <p class="text-gray-500 text-center py-12">Nenhum pedido encontrado.</p>
                 @endforelse
@@ -298,7 +259,7 @@
 
                 <div class="md:col-span-2">
                     <label class="block text-text-light font-semibold mb-2 text-sm">Bairro</label>
-                    <input id="field-neighborhood" class="w-full bg-[#261715] border border-gray-700 text-text-light rounded-lg px-4 py-2 focus:outline-none placeholder-gray-600 opacity-70 cursor-not-allowed" placeholder="Preenchido automaticamente pelo CEP" type="text" readonly tabindex="-1"/>
+                    <input id="field-neighborhood" name="neighborhood" class="w-full bg-[#261715] border border-gray-700 text-text-light rounded-lg px-4 py-2 focus:outline-none placeholder-gray-600 opacity-70 cursor-not-allowed" placeholder="Preenchido automaticamente pelo CEP" type="text" readonly tabindex="-1"/>
                 </div>
 
                 <div>
@@ -433,6 +394,56 @@
 </div>
 
 
+
+<div id="modal-cancelar-pedido" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-background-dark rounded-2xl border border-gray-800 w-full max-w-sm shadow-2xl">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+            <h2 class="font-display text-xl font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-500">warning</span>
+                Cancelar Pedido
+            </h2>
+            <button id="modal-cancelar-close" class="text-gray-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="p-6 text-gray-300">
+            <p>Tem certeza que deseja cancelar este pedido? Esta ação não poderá ser desfeita.</p>
+        </div>
+        <div class="p-6 border-t border-gray-800 flex gap-3 justify-end">
+            <button id="modal-cancelar-cancel" class="px-5 py-2 border border-gray-700 text-gray-400 hover:text-white font-bold rounded-lg transition-colors text-sm">Voltar</button>
+            <button id="btn-confirmar-cancelamento" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all text-sm flex items-center gap-1.5">
+                Confirmar Cancelamento
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-solicitar-cancelamento" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-background-dark rounded-2xl border border-gray-800 w-full max-w-md shadow-2xl">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+            <h2 class="font-display text-xl font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-yellow-500">info</span>
+                Pedido em Andamento
+            </h2>
+            <button id="modal-solicitar-close" class="text-gray-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="p-6 text-gray-300 space-y-4">
+            <p>Este pedido já está sendo preparado pela nossa equipe ou já saiu para entrega.</p>
+            <p>Para cancelar, por favor entre em contato com o restaurante pelo telefone ou WhatsApp:</p>
+            <div class="bg-[#1d0e0b] p-4 rounded-lg border border-gray-800 flex items-center gap-3 justify-center">
+                <span class="material-symbols-outlined text-green-500 text-2xl">call</span>
+                <span class="text-white font-bold text-lg">(11) 99999-9999</span>
+            </div>
+        </div>
+        <div class="p-6 border-t border-gray-800 flex justify-end">
+            <button id="modal-solicitar-ok" class="px-6 py-2 bg-secondary hover:bg-[#c2884a] text-primary font-bold rounded-lg transition-all text-sm">
+                Entendi
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

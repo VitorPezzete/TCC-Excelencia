@@ -11,10 +11,14 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 
         /* Cores Personalizadas */
-  --color-primary: #3c2214;
+        /* --color-primary: #3c2214;
   --color-secondary: #d69c5e;
   --color-background-dark: #1A0F0E;
-  --color-text-light: #fdf1e4;
+  --color-text-light: #fdf1e4; */
+  --color-primary: #4a2a18;         /* um pouco mais claro que antes */
+  --color-secondary: #e0a86a;       /* dourado mais brilhante, mais contraste */
+  --color-background-dark: #241510; /* de #1A0F0E para #241510 — mais luz */
+  --color-text-light: #fff8f0;      /* branco cremoso, mais puro */
 
   /* Fontes (Certifique-se de manter os imports do Google Fonts no Blade) */
   --font-display: "Playfair Display", serif;
@@ -26,7 +30,7 @@
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
 
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 /* Seus estilos customizados do scrollbar continuam aqui embaixo */
@@ -34,12 +38,27 @@
     width: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #1A0F0E; 
+    background: #241510;
 }
 ::-webkit-scrollbar-thumb {
-    background: #d69c5e; 
+    background: #e0a86a;
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #c2884a;
+    background: #c9904f;
 }
+
+/* ── Melhorias globais de contraste ── */
+/* Eleva o cinza padrão dos textos descritivos para garantir legibilidade */
+.text-gray-300 { color: #d6cfc8 !important; }
+.text-gray-400 { color: #b8b0a6 !important; }
+.text-gray-500 { color: #9a9189 !important; }
+.text-gray-600 { color: #7a7068 !important; }
+
+/* Garante que cards com fundo escuro tenham contraste suficiente */
+.bg-\[\#140b0a\] { background-color: #2a1610 !important; }
+.bg-\[\#0a0504\] { background-color: #1a0d08 !important; }
+.bg-\[\#0f0807\] { background-color: #201008 !important; }
+.bg-\[\#0f0806\] { background-color: #201008 !important; }
+.bg-\[\#120601\] { background-color: #1e0c05 !important; }
+.bg-\[\#120a08\] { background-color: #1e0f0c !important; }

@@ -11,6 +11,7 @@ class Endereco extends Model
         'user_id',
         'nome',
         'cep',
+        'bairro',
         'numero',
         'complemento',
         'padrao',

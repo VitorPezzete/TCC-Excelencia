@@ -57,13 +57,20 @@
     </td>
 
     <td class="td">
-        <button id="badge-status-{{ $pedido->id }}"
-            class="btn-change-status status-pill {{ $statusClasses[$pedido->status] ?? '' }}"
-            data-id="{{ $pedido->id }}">
-            <span class="material-symbols-outlined text-[13px]">{{ $statusIcons[$pedido->status] ?? 'schedule' }}</span>
-            {{ $statusLabels[$pedido->status] ?? $pedido->status }}
-            <span class="material-symbols-outlined text-[11px]">expand_more</span>
-        </button>
+        @if(isset($readonly) && $readonly)
+            <span class="status-pill {{ $statusClasses[$pedido->status] ?? '' }}">
+                <span class="material-symbols-outlined text-[13px]">{{ $statusIcons[$pedido->status] ?? 'schedule' }}</span>
+                {{ $statusLabels[$pedido->status] ?? $pedido->status }}
+            </span>
+        @else
+            <button id="badge-status-{{ $pedido->id }}"
+                class="btn-change-status status-pill {{ $statusClasses[$pedido->status] ?? '' }}"
+                data-id="{{ $pedido->id }}">
+                <span class="material-symbols-outlined text-[13px]">{{ $statusIcons[$pedido->status] ?? 'schedule' }}</span>
+                {{ $statusLabels[$pedido->status] ?? $pedido->status }}
+                <span class="material-symbols-outlined text-[11px]">expand_more</span>
+            </button>
+        @endif
     </td>
 
     <td class="td text-center">

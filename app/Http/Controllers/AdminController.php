@@ -10,19 +10,76 @@ use App\Models\Produto;
 use App\Models\User;
 use App\Models\Categoria;
 use App\Models\Avaliacao;
+use App\Models\ZonaEntrega;
+use App\Models\Endereco;
 use Carbon\Carbon;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        $totalFaturamentoMes = Pedido::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        $lastMonth = now()->subMonth()->month;
+        $lastMonthYear = now()->subMonth()->year;
+
+        // Faturamento
+        $totalFaturamentoMes = Pedido::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
             ->whereNotIn('status', ['cancelado'])
             ->sum('total');
 
+        $fatMesAnterior = Pedido::whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->whereNotIn('status', ['cancelado'])
+            ->sum('total');
+
+        $variacaoFat = $fatMesAnterior > 0 
+            ? (($totalFaturamentoMes - $fatMesAnterior) / $fatMesAnterior) * 100 
+            : ($totalFaturamentoMes > 0 ? 100 : 0);
+
+        // Ticket Médio
+        $ticketMedio = Pedido::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->whereNotIn('status', ['cancelado'])
+            ->avg('total') ?? 0;
+
+        // Taxa de Cancelamento
+        $totalPedidosMes = Pedido::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+        $canceladosMes = Pedido::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->where('status', 'cancelado')
+            ->count();
+        $taxaCancelamento = $totalPedidosMes > 0 ? ($canceladosMes / $totalPedidosMes) * 100 : 0;
+
+        // Pedidos Hoje
         $pedidosHoje = Pedido::whereDate('created_at', today())->count();
+        $pedidosOntem = Pedido::whereDate('created_at', today()->subDay())->count();
+        $variacaoPedidos = $pedidosOntem > 0 
+            ? (($pedidosHoje - $pedidosOntem) / $pedidosOntem) * 100 
+            : ($pedidosHoje > 0 ? 100 : 0);
+
+        // Clientes
         $totalClientes = User::where('is_admin', false)->count();
+        $novosClientesMes = User::where('is_admin', false)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+        $novosClientesMesAnterior = User::where('is_admin', false)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+        $variacaoClientes = $novosClientesMesAnterior > 0
+            ? (($novosClientesMes - $novosClientesMesAnterior) / $novosClientesMesAnterior) * 100
+            : ($novosClientesMes > 0 ? 100 : 0);
+
+        // Pedidos Pendentes Antigos (mais de 5 min)
+        $pedidosAtrasados = Pedido::where('status', 'pendente')
+            ->whereDate('created_at', today())
+            ->where('created_at', '<', now()->subMinutes(5))
+            ->count();
 
         $produtoMaisVendido = DB::table('itens_pedido')
             ->join('produtos', 'itens_pedido.produto_id', '=', 'produtos.id')
@@ -66,21 +123,94 @@ class AdminController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        $pedidosRecentes = Pedido::with(['user', 'pagamento'])
-            ->latest()
-            ->take(10)
+        $topProdutos = DB::table('itens_pedido')
+            ->join('produtos', 'itens_pedido.produto_id', '=', 'produtos.id')
+            ->join('pedidos', 'itens_pedido.pedido_id', '=', 'pedidos.id')
+            ->whereNotIn('pedidos.status', ['cancelado'])
+            ->select('produtos.nome', DB::raw('SUM(itens_pedido.quantidade) as total'))
+            ->groupBy('produtos.id', 'produtos.nome')
+            ->orderByDesc('total')
+            ->take(5)
             ->get();
+
+        $volumePedidos7Dias = collect(range(6, 0))->map(function ($daysAgo) {
+            $date = Carbon::today()->subDays($daysAgo);
+            return [
+                'label' => $date->format('d/m'),
+                'total' => Pedido::whereDate('created_at', $date)
+                    ->whereNotIn('status', ['cancelado'])
+                    ->count(),
+            ];
+        });
+
+        $volumePedidos30Dias = collect(range(29, 0))->map(function ($daysAgo) {
+            $date = Carbon::today()->subDays($daysAgo);
+            return [
+                'label' => $date->format('d/m'),
+                'total' => Pedido::whereDate('created_at', $date)
+                    ->whereNotIn('status', ['cancelado'])
+                    ->count(),
+            ];
+        });
 
         $mediaAvaliacoes = Avaliacao::avg('nota') ?? 0;
         $totalAvaliacoes = Avaliacao::count();
         $avaliacoesSemResposta = Avaliacao::whereNull('resposta_admin')->count();
 
+        // Pedidos de hoje (ativos — excluindo entregue e cancelado)
+        $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])
+            ->whereDate('created_at', today())
+            ->whereNotIn('status', ['entregue', 'cancelado'])
+            ->latest()
+            ->get();
+
+        // Histórico: entregues e cancelados de qualquer data
+        $pedidosHistorico = Pedido::with(['user', 'pagamento'])
+            ->whereIn('status', ['entregue', 'cancelado'])
+            ->latest()
+            ->take(50)
+            ->get();
+
+        // Mantido para compatibilidade com contadores no filtro de status
+        $pedidosRecentes = $pedidosHoje_lista;
+
         return view('admin.dashboard', compact(
-            'totalFaturamentoMes', 'pedidosHoje', 'totalClientes', 'produtoMaisVendido',
+            'totalFaturamentoMes', 'variacaoFat', 'ticketMedio', 'taxaCancelamento',
+            'pedidosHoje', 'variacaoPedidos', 'pedidosAtrasados',
+            'totalClientes', 'novosClientesMes', 'variacaoClientes', 'produtoMaisVendido',
             'faturamento7Dias', 'faturamento30Dias', 'pedidosPorStatus',
-            'faturamentoPorCategoria', 'pedidosRecentes',
-            'mediaAvaliacoes', 'totalAvaliacoes', 'avaliacoesSemResposta'
+            'faturamentoPorCategoria', 'topProdutos', 'volumePedidos7Dias', 'volumePedidos30Dias',
+            'mediaAvaliacoes', 'totalAvaliacoes', 'avaliacoesSemResposta',
+            'pedidosHoje_lista', 'pedidosHistorico', 'pedidosRecentes'
         ));
+    }
+
+    public function apiAtivos()
+    {
+        $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])
+            ->whereDate('created_at', today())
+            ->whereNotIn('status', ['entregue', 'cancelado'])
+            ->latest()
+            ->get();
+
+        $html = '';
+        foreach ($pedidosHoje_lista as $pedido) {
+            $html .= view('admin._pedido_row', ['pedido' => $pedido, 'showDate' => true])->render();
+        }
+
+        $statusCounts = $pedidosHoje_lista->groupBy('status')->map->count();
+        
+        $pedidosAtrasadosCount = $pedidosHoje_lista->filter(function ($pedido) {
+            return $pedido->status === 'pendente' && $pedido->created_at < now()->subMinutes(5);
+        })->count();
+
+        return response()->json([
+            'html' => $html,
+            'count' => $pedidosHoje_lista->count(),
+            'latest_id' => $pedidosHoje_lista->max('id') ?? 0,
+            'status_counts' => $statusCounts,
+            'pedidos_atrasados_count' => $pedidosAtrasadosCount
+        ]);
     }
 
     public function pedidos(Request $request)
@@ -204,18 +334,6 @@ class AdminController extends Controller
         return response()->json(Categoria::orderBy('nome')->get());
     }
 
-    public function usuarios()
-    {
-        $usuarios = User::withCount('pedidos')->latest()->paginate(20);
-        return view('admin.usuarios', compact('usuarios'));
-    }
-
-    public function toggleAdmin($id)
-    {
-        $usuario = User::findOrFail($id);
-        $usuario->update(['is_admin' => !$usuario->is_admin]);
-        return response()->json(['success' => true, 'is_admin' => $usuario->is_admin]);
-    }
 
     public function avaliacoes(Request $request)
     {
@@ -285,10 +403,132 @@ class AdminController extends Controller
                 'nome'       => $i->produto?->nome ?? '—',
                 'quantidade' => $i->quantidade,
                 'preco'      => number_format($i->preco_unitario, 2, ',', '.'),
+                'observacao' => $i->observacoes,
                 'imagem'     => $i->produto?->imagem
                     ? (str_starts_with($i->produto->imagem, 'http') ? $i->produto->imagem : asset('storage/'.$i->produto->imagem))
                     : null,
             ]),
+        ]);
+    }
+
+    // ═══════════════════════════════════════════
+    //  ZONAS DE ENTREGA
+    // ═══════════════════════════════════════════
+
+    public function indexZonas()
+    {
+        return response()->json(ZonaEntrega::orderBy('nome')->get());
+    }
+
+    public function storeZona(Request $request)
+    {
+        $request->validate([
+            'nome'               => 'required|string|max:100',
+            'taxa'               => 'required|numeric|min:0',
+            'bairros'            => 'required|array|min:1',
+            'bairros.*'          => 'required|string|max:100',
+            'frete_gratis_acima' => 'nullable|numeric|min:0',
+        ]);
+
+        $zona = ZonaEntrega::create([
+            'nome'               => $request->nome,
+            'taxa'               => $request->taxa,
+            'bairros'            => array_map('trim', $request->bairros),
+            'frete_gratis_acima' => $request->frete_gratis_acima ?: null,
+            'ativo'              => true,
+        ]);
+
+        return response()->json(['success' => true, 'zona' => $zona]);
+    }
+
+    public function updateZona(Request $request, $id)
+    {
+        $request->validate([
+            'nome'               => 'required|string|max:100',
+            'taxa'               => 'required|numeric|min:0',
+            'bairros'            => 'required|array|min:1',
+            'bairros.*'          => 'required|string|max:100',
+            'frete_gratis_acima' => 'nullable|numeric|min:0',
+            'ativo'              => 'nullable|boolean',
+        ]);
+
+        $zona = ZonaEntrega::findOrFail($id);
+        $zona->update([
+            'nome'               => $request->nome,
+            'taxa'               => $request->taxa,
+            'bairros'            => array_map('trim', $request->bairros),
+            'frete_gratis_acima' => $request->frete_gratis_acima ?: null,
+            'ativo'              => $request->boolean('ativo', true),
+        ]);
+
+        return response()->json(['success' => true, 'zona' => $zona]);
+    }
+
+    public function destroyZona($id)
+    {
+        ZonaEntrega::findOrFail($id)->delete();
+        return response()->json(['success' => true]);
+    }
+
+    // Endpoint público: calcula a taxa dado um endereço
+    public function calcularFrete(Request $request)
+    {
+        $request->validate(['endereco_id' => 'required|integer']);
+
+        $endereco = Endereco::where('id', $request->endereco_id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $bairro = trim($endereco->bairro ?? '');
+
+        // ── Se o bairro estiver vazio, tenta enriquecer via ViaCEP ──
+        if (empty($bairro) && !empty($endereco->cep)) {
+            $cepLimpo = preg_replace('/\D/', '', $endereco->cep);
+            try {
+                $resposta = \Illuminate\Support\Facades\Http::timeout(5)
+                    ->get("https://viacep.com.br/ws/{$cepLimpo}/json/");
+
+                if ($resposta->ok()) {
+                    $dados = $resposta->json();
+                    if (!empty($dados['bairro'])) {
+                        $bairro = $dados['bairro'];
+                        // Persiste o bairro para não precisar buscar novamente
+                        $endereco->update(['bairro' => $bairro]);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignora erro de rede — continua sem bairro
+            }
+        }
+
+        if (empty($bairro)) {
+            return response()->json([
+                'taxa'     => null,
+                'mensagem' => 'Não foi possível identificar o bairro deste endereço. Edite o endereço e confirme o bairro.',
+            ]);
+        }
+
+        $zona = ZonaEntrega::encontrarPorBairro($bairro);
+
+        if (!$zona) {
+            return response()->json([
+                'taxa'     => null,
+                'zona'     => null,
+                'bairro'   => $bairro,
+                'mensagem' => "Bairro \"{$bairro}\" ainda não possui taxa de entrega cadastrada.",
+            ]);
+        }
+
+        $subtotal  = $request->subtotal ?? 0;
+        $taxaFinal = ($zona->frete_gratis_acima && $subtotal >= $zona->frete_gratis_acima)
+            ? 0
+            : (float) $zona->taxa;
+
+        return response()->json([
+            'taxa'               => $taxaFinal,
+            'zona'               => $zona->nome,
+            'bairro'             => $bairro,
+            'frete_gratis_acima' => $zona->frete_gratis_acima,
         ]);
     }
 }

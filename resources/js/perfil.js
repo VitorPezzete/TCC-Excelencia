@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
         activateTab(this.dataset.tab);
     }));
 
-    const initialTab = (document.body.dataset.tab || 'dados').trim();
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = (urlParams.get('tab') || document.body.dataset.tab || 'dados').trim();
     activateTab(initialTab);
 
     const modalAddress    = document.getElementById('modal-address');
@@ -178,73 +179,218 @@ document.addEventListener('DOMContentLoaded', function () {
         'cancelado':         { label: 'Cancelado', icon: 'cancel', color: 'red' },
     };
 
-    btnDetalhes.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const pedido = JSON.parse(this.dataset.pedido);
-            
-            document.getElementById('mp-id').textContent = '#' + String(pedido.id).padStart(4, '0');
-            
-            const dateObj = new Date(pedido.created_at);
-            document.getElementById('mp-date').textContent = 'Realizado em ' + dateObj.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'});
-            
-            const statusInfo = statusMap[pedido.status] || statusMap['pendente'];
-            document.getElementById('mp-status-label').textContent = statusInfo.label;
-            document.getElementById('mp-status-label').className = `font-bold text-${statusInfo.color}-400 text-xl tracking-wide uppercase`;
-            document.getElementById('mp-status-icon').textContent = statusInfo.icon;
-            document.getElementById('mp-status-icon-container').className = `bg-${statusInfo.color}-500/20 text-${statusInfo.color}-400 p-3 rounded-full flex items-center justify-center shadow-inner shadow-${statusInfo.color}-500/10`;
-
-            const itemsList = document.getElementById('mp-items-list');
-            itemsList.innerHTML = '';
-            
-            pedido.itens.forEach(item => {
-                const obsHTML = item.observacoes ? `<p class="text-sm text-gray-400">${item.observacoes}</p>` : '';
-                itemsList.innerHTML += `
-                    <div class="flex justify-between items-center bg-background-dark/50 p-3 rounded-lg border border-gray-800/50">
-                        <div class="flex gap-4 items-center">
-                            <div class="w-10 h-10 bg-gray-800 rounded flex items-center justify-center text-secondary font-bold text-sm">${item.quantidade}x</div>
-                            <div>
-                                <p class="font-bold text-white">${item.produto.nome}</p>
-                                ${obsHTML}
-                            </div>
-                        </div>
-                        <p class="font-bold text-white">R$ ${formatCurrency(item.preco_total)}</p>
-                    </div>
-                `;
-            });
-
-            document.getElementById('mp-address-name').textContent = pedido.endereco ? pedido.endereco.nome : 'Retirada/Sem Endereço';
-            
-            if(pedido.endereco) {
-                document.getElementById('mp-address-desc').innerHTML = `
-                    ${pedido.endereco.logradouro || 'Buscando...'}, ${pedido.endereco.numero}<br/>
-                    ${pedido.endereco.complemento ? pedido.endereco.complemento + '<br/>' : ''}
-                    CEP: ${pedido.endereco.cep}<br/>
-                `;
+    function bindClientButtons() {
+        document.querySelectorAll('.btn-detalhes-pedido').forEach(btn => {
+            btn.removeEventListener('click', btn._detalhesHandler);
+            btn._detalhesHandler = function() {
+                const pedido = JSON.parse(this.dataset.pedido);
                 
-                const rawCep = pedido.endereco.cep.replace(/\D/g, '');
-                fetch(`https://viacep.com.br/ws/${rawCep}/json/`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if(!data.erro) {
-                            document.getElementById('mp-address-desc').innerHTML = `
-                                ${data.logradouro}, ${pedido.endereco.numero}<br/>
-                                ${pedido.endereco.complemento ? pedido.endereco.complemento + '<br/>' : ''}
-                                ${data.bairro}<br/>
-                                ${data.localidade} - ${data.uf}
-                            `;
+                document.getElementById('mp-id').textContent = '#' + String(pedido.id).padStart(4, '0');
+                
+                const dateObj = new Date(pedido.created_at);
+                document.getElementById('mp-date').textContent = 'Realizado em ' + dateObj.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+                
+                const statusInfo = statusMap[pedido.status] || statusMap['pendente'];
+                document.getElementById('mp-status-label').textContent = statusInfo.label;
+                document.getElementById('mp-status-label').className = `font-bold text-${statusInfo.color}-400 text-xl tracking-wide uppercase`;
+                document.getElementById('mp-status-icon').textContent = statusInfo.icon;
+                document.getElementById('mp-status-icon-container').className = `bg-${statusInfo.color}-500/20 text-${statusInfo.color}-400 p-3 rounded-full flex items-center justify-center shadow-inner shadow-${statusInfo.color}-500/10`;
+
+                const itemsList = document.getElementById('mp-items-list');
+                itemsList.innerHTML = '';
+                
+                pedido.itens.forEach(item => {
+                    const obsHTML = item.observacoes ? `<p class="text-sm text-gray-400">${item.observacoes}</p>` : '';
+                    itemsList.innerHTML += `
+                        <div class="flex justify-between items-center bg-background-dark/50 p-3 rounded-lg border border-gray-800/50">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-10 h-10 bg-gray-800 rounded flex items-center justify-center text-secondary font-bold text-sm">${item.quantidade}x</div>
+                                <div>
+                                    <p class="font-bold text-white">${item.produto.nome}</p>
+                                    ${obsHTML}
+                                </div>
+                            </div>
+                            <p class="font-bold text-white">R$ ${formatCurrency(item.preco_total)}</p>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('mp-address-name').textContent = pedido.endereco ? pedido.endereco.nome : 'Retirada/Sem Endereço';
+                
+                if(pedido.endereco) {
+                    document.getElementById('mp-address-desc').innerHTML = `
+                        ${pedido.endereco.logradouro || 'Buscando...'}, ${pedido.endereco.numero}<br/>
+                        ${pedido.endereco.complemento ? pedido.endereco.complemento + '<br/>' : ''}
+                        CEP: ${pedido.endereco.cep}<br/>
+                    `;
+                    
+                    const rawCep = pedido.endereco.cep.replace(/\D/g, '');
+                    fetch(`https://viacep.com.br/ws/${rawCep}/json/`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if(!data.erro) {
+                                document.getElementById('mp-address-desc').innerHTML = `
+                                    ${data.logradouro}, ${pedido.endereco.numero}<br/>
+                                    ${pedido.endereco.complemento ? pedido.endereco.complemento + '<br/>' : ''}
+                                    ${data.bairro}<br/>
+                                    ${data.localidade} - ${data.uf}
+                                `;
+                            }
+                        });
+                } else {
+                     document.getElementById('mp-address-desc').textContent = '--';
+                }
+
+                document.getElementById('mp-subtotal').textContent = 'R$ ' + formatCurrency(pedido.subtotal);
+                document.getElementById('mp-taxa').textContent = pedido.taxa_entrega > 0 ? 'R$ ' + formatCurrency(pedido.taxa_entrega) : 'Grátis';
+                document.getElementById('mp-taxa').className = pedido.taxa_entrega > 0 ? 'text-gray-400' : 'text-green-400';
+                document.getElementById('mp-total').textContent = 'R$ ' + formatCurrency(pedido.total);
+
+                modalPedido.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            };
+            btn.addEventListener('click', btn._detalhesHandler);
+        });
+
+        const modalCancelar = document.getElementById('modal-cancelar-pedido');
+        const btnConfirmarCancelamento = document.getElementById('btn-confirmar-cancelamento');
+        let pedidoParaCancelar = null;
+
+        function fecharModalCancelar() {
+            if (modalCancelar) modalCancelar.classList.add('hidden');
+            pedidoParaCancelar = null;
+        }
+
+        document.getElementById('modal-cancelar-close')?.addEventListener('click', fecharModalCancelar);
+        document.getElementById('modal-cancelar-cancel')?.addEventListener('click', fecharModalCancelar);
+
+        document.querySelectorAll('.btn-cancelar-pedido').forEach(btn => {
+            btn.removeEventListener('click', btn._cancelarHandler);
+            btn._cancelarHandler = function() {
+                pedidoParaCancelar = this.dataset.pedidoId;
+                if (modalCancelar) modalCancelar.classList.remove('hidden');
+            };
+            btn.addEventListener('click', btn._cancelarHandler);
+        });
+
+        if (btnConfirmarCancelamento) {
+            btnConfirmarCancelamento.replaceWith(btnConfirmarCancelamento.cloneNode(true));
+            const newBtnConfirmar = document.getElementById('btn-confirmar-cancelamento');
+            
+            newBtnConfirmar.addEventListener('click', async function() {
+                if (!pedidoParaCancelar) return;
+                
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                this.disabled = true;
+                this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">sync</span> Cancelando...';
+                
+                try {
+                    const res = await fetch(`/perfil/pedidos/${pedidoParaCancelar}/cancelar`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json'
                         }
                     });
-            } else {
-                 document.getElementById('mp-address-desc').textContent = '--';
+                    
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Erro ao cancelar o pedido.');
+                        fecharModalCancelar();
+                        this.disabled = false;
+                        this.innerHTML = 'Confirmar Cancelamento';
+                    }
+                } catch (e) {
+                    alert('Erro de comunicação. Tente novamente.');
+                    fecharModalCancelar();
+                    this.disabled = false;
+                    this.innerHTML = 'Confirmar Cancelamento';
+                }
+            });
+        }
+
+        const modalSolicitar = document.getElementById('modal-solicitar-cancelamento');
+        function fecharModalSolicitar() {
+            if (modalSolicitar) modalSolicitar.classList.add('hidden');
+        }
+        document.getElementById('modal-solicitar-close')?.addEventListener('click', fecharModalSolicitar);
+        document.getElementById('modal-solicitar-ok')?.addEventListener('click', fecharModalSolicitar);
+
+        document.querySelectorAll('.btn-solicitar-cancelamento').forEach(btn => {
+            btn.removeEventListener('click', btn._solicitarHandler);
+            btn._solicitarHandler = function() {
+                if (modalSolicitar) modalSolicitar.classList.remove('hidden');
+            };
+            btn.addEventListener('click', btn._solicitarHandler);
+        });
+    }
+
+    bindClientButtons();
+
+    // SPA POLLING LOGIC & NOTIFICATIONS (CLIENTE)
+    let lastOrderStatuses = null;
+    
+    function playBeep() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1046.50, audioCtx.currentTime); // C6 note
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 200);
+        } catch(e) {}
+    }
+
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    async function pollClientOrders() {
+        try {
+            const res = await fetch('/pedidos/api');
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            if (lastOrderStatuses === null) {
+                lastOrderStatuses = data.statuses;
+                return;
             }
 
-            document.getElementById('mp-subtotal').textContent = 'R$ ' + formatCurrency(pedido.subtotal);
-            document.getElementById('mp-taxa').textContent = pedido.taxa_entrega > 0 ? 'R$ ' + formatCurrency(pedido.taxa_entrega) : 'Grátis';
-            document.getElementById('mp-taxa').className = pedido.taxa_entrega > 0 ? 'text-gray-400' : 'text-green-400';
-            document.getElementById('mp-total').textContent = 'R$ ' + formatCurrency(pedido.total);
+            let hasChanged = false;
+            let msgAlerta = '';
 
-            modalPedido.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        });
-    });
+            for (const [id, status] of Object.entries(data.statuses)) {
+                if (lastOrderStatuses[id] !== undefined && lastOrderStatuses[id] !== status) {
+                    hasChanged = true;
+                    msgAlerta = `Seu pedido #${String(id).padStart(4, '0')} agora está: ${statusMap[status]?.label || status}`;
+                    break;
+                }
+            }
+
+            if (hasChanged) {
+                playBeep();
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Status do Pedido Atualizado!', { body: msgAlerta, icon: '/favicon.ico' });
+                }
+                const tbody = document.getElementById('perfil-pedidos-list');
+                if (tbody && data.html) {
+                    tbody.innerHTML = data.html;
+                    bindClientButtons();
+                }
+            }
+            lastOrderStatuses = data.statuses;
+        } catch(e) {}
+    }
+
+    setInterval(pollClientOrders, 10000);
+    setTimeout(pollClientOrders, 1000);
+
 });

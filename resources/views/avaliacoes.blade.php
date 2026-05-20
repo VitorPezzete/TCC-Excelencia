@@ -5,6 +5,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Excelência — Avaliações dos Clientes</title>
+<link rel="icon" type="image/png" href="/images/logo.png">
 <meta name="description" content="Veja o que nossos clientes dizem sobre os doces e salgados da Excelência. Avaliações reais de quem já pediu.">
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>

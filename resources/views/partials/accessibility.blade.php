@@ -5,7 +5,7 @@
 </button>
 
 <div id="painel-acessibilidade"
-    class="hidden fixed bottom-20 right-6 z-50 bg-[#1a1008] border border-secondary/20 rounded-2xl shadow-2xl p-5 w-72 space-y-4 backdrop-blur-sm">
+    class="hidden fixed bottom-20 right-6 z-50 bg-[#1a1008] border border-secondary/20 rounded-2xl shadow-2xl p-5 w-72 space-y-4 backdrop-blur-sm max-h-[80vh] overflow-y-auto">
     <div class="flex items-center gap-2 mb-1">
         <span class="material-symbols-outlined text-secondary text-[18px]">accessibility_new</span>
         <p class="text-xs font-bold text-secondary uppercase tracking-widest">Acessibilidade</p>
@@ -42,6 +42,26 @@
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Realçar links</span>
         <button id="acc-links" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-300">Cursor grande</span>
+        <button id="acc-cursor" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-300">Cores invertidas</span>
+        <button id="acc-invert" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-300">Monocromático</span>
+        <button id="acc-grayscale" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-300">Alinhar à esquerda</span>
+        <button id="acc-align" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="pt-2 border-t border-white/[0.06] flex items-center justify-between">

@@ -5,6 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Excelência - Meu Carrinho</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
@@ -127,7 +128,7 @@
                         <span class="material-symbols-outlined text-sm">add</span>
                         Adicionar Novo Endereço
                     </button>
-                    <p id="frete-msg" class="text-xs text-secondary mt-2 hidden">* O valor do frete foi estimado em R$ 15,00 para este local.</p>
+                    <p id="frete-msg" class="text-xs mt-2 hidden"></p>
                 </div>
 
                 <div class="pt-4">
@@ -182,7 +183,7 @@
                 
                 <div class="md:col-span-2">
                     <label class="block text-text-light font-semibold mb-2 text-sm">Bairro</label>
-                    <input id="field-neighborhood" class="w-full bg-[#261715] border border-gray-700 text-text-light rounded-lg px-4 py-2 focus:outline-none placeholder-gray-600 opacity-70 cursor-not-allowed" placeholder="Preenchido automaticamente pelo CEP" type="text" readonly tabindex="-1"/>
+                    <input id="field-neighborhood" name="neighborhood" class="w-full bg-[#261715] border border-gray-700 text-text-light rounded-lg px-4 py-2 focus:outline-none placeholder-gray-600 opacity-70 cursor-not-allowed" placeholder="Preenchido automaticamente pelo CEP" type="text" readonly tabindex="-1"/>
                 </div>
 
                 <div>
@@ -213,7 +214,7 @@
             </button>
         </div>
         <div class="p-6 overflow-y-auto">
-            <form id="form-checkout">
+            <form id="form-checkout" data-pix-url="{{ route('pagamento.pix', ['pedido' => ':id']) }}">
                 <div class="space-y-4">
                     <label class="block text-text-light font-semibold mb-2 text-sm">Forma de Pagamento</label>
                     <select id="payment-method" required class="w-full bg-[#261715] border border-gray-700 text-text-light rounded-lg px-4 py-3 focus:outline-none focus:border-secondary transition-all">
@@ -236,6 +237,105 @@
                     <button type="submit" id="btn-confirm-checkout" class="px-6 py-2 rounded-lg font-bold bg-secondary text-primary hover:bg-[#c2884a] transition-colors flex items-center gap-2">Confirmar Pedido</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- ─── Modal PIX ──────────────────────────────────────────────────────── --}}
+<div id="modal-pix" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-[#0d1117] rounded-2xl border border-[#00b37e]/30 w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+
+        {{-- Header --}}
+        <div class="p-5 border-b border-gray-800 flex justify-between items-center bg-[#00b37e]/5">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-[#00b37e]/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[#00b37e] text-xl">qr_code_2</span>
+                </div>
+                <h2 class="font-display text-xl font-bold text-white">Pagar com PIX</h2>
+            </div>
+            <button id="modal-pix-close" class="text-gray-500 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="p-6 space-y-5">
+
+            {{-- Loading state --}}
+            <div id="pix-loading" class="flex flex-col items-center gap-3 py-8">
+                <span class="material-symbols-outlined text-5xl text-[#00b37e] animate-spin">refresh</span>
+                <p class="text-gray-400 text-sm">Gerando QR Code PIX...</p>
+            </div>
+
+            {{-- QR Code --}}
+            <div id="pix-content" class="hidden space-y-5">
+
+                <p class="text-sm text-gray-400 text-center">
+                    Escaneie o QR Code abaixo ou copie o código PIX para pagar.
+                    <br>O pedido é confirmado <strong class="text-white">automaticamente</strong> após o pagamento.
+                </p>
+
+                {{-- QR Image --}}
+                <div class="flex justify-center">
+                    <div class="p-3 bg-white rounded-xl shadow-lg">
+                        <img id="pix-qr-img" src="" alt="QR Code PIX" class="w-52 h-52 object-contain" />
+                    </div>
+                </div>
+
+                {{-- Countdown --}}
+                <div class="flex items-center justify-center gap-2 text-sm">
+                    <span class="material-symbols-outlined text-amber-400 text-base">timer</span>
+                    <span class="text-gray-400">Expira em:</span>
+                    <span id="pix-countdown" class="font-mono font-bold text-amber-400">--:--</span>
+                </div>
+
+                {{-- Copia e cola --}}
+                <div class="space-y-2">
+                    <label class="text-xs text-gray-500 uppercase tracking-wider">Código copia e cola</label>
+                    <div class="flex gap-2">
+                        <input id="pix-codigo" type="text" readonly
+                            class="flex-1 bg-[#161b22] border border-gray-700 text-gray-300 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#00b37e] truncate"
+                        />
+                        <button id="btn-copiar-pix" type="button"
+                            class="shrink-0 bg-[#00b37e] hover:bg-[#00a372] text-white font-bold px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-1">
+                            <span class="material-symbols-outlined text-base">content_copy</span>
+                            <span id="btn-copiar-texto">Copiar</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Botão fechar / já paguei --}}
+                <button id="btn-pix-concluido" type="button"
+                    class="w-full border border-[#00b37e]/40 hover:border-[#00b37e] text-[#00b37e] hover:text-white hover:bg-[#00b37e]/10 font-bold py-3 rounded-xl transition-all text-sm">
+                    Já realizei o pagamento
+                </button>
+            </div>
+
+            {{-- Error state --}}
+            <div id="pix-error" class="hidden flex-col items-center gap-3 py-8 text-center">
+                <span class="material-symbols-outlined text-5xl text-red-400">error_outline</span>
+                <p class="text-red-400 font-semibold">Não foi possível gerar o PIX</p>
+                <p id="pix-error-msg" class="text-gray-500 text-sm"></p>
+                <button id="btn-pix-retry" type="button"
+                    class="mt-2 px-6 py-2 bg-[#00b37e] hover:bg-[#00a372] text-white font-bold rounded-lg text-sm transition-all">
+                    Tentar novamente
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal-alert" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-background-dark rounded-2xl border border-gray-800 w-full max-w-sm shadow-2xl animate-fade-up">
+        <div class="p-6 text-center">
+            <div id="modal-alert-icon-wrap" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span id="modal-alert-icon" class="material-symbols-outlined text-3xl"></span>
+            </div>
+            <h3 id="modal-alert-title" class="font-bold text-white text-lg mb-2"></h3>
+            <p id="modal-alert-msg" class="text-sm text-gray-400 mb-6"></p>
+            <button id="modal-alert-ok"
+                class="w-full px-4 py-2.5 text-sm font-bold bg-secondary text-primary rounded-xl hover:bg-[#c2884a] transition-all">OK</button>
         </div>
     </div>
 </div>
