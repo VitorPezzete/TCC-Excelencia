@@ -70,6 +70,10 @@ Route::middleware('auth')->group(function () {
     // Rota de Pagamento PIX (Mercado Pago)
     Route::post('/pagamento/pix/{pedido}', [PagamentoController::class, 'criarPix'])->name('pagamento.pix');
 
+    // Rota de Pagamento Cartão (Mercado Pago Bricks)
+    Route::get('/pagamento/cartao/{pedido}', [PagamentoController::class, 'showPaymentForm'])->name('pagamento.cartao');
+    Route::post('/pagamento/cartao/{pedido}', [PagamentoController::class, 'processarCartao'])->name('pagamento.cartao.processar');
+
     Route::post('/avaliacoes', function (\Illuminate\Http\Request $req) {
         $req->validate(['pedido_id' => 'required|integer', 'nota' => 'required|integer|min:1|max:5', 'comentario' => 'nullable|string|max:1000']);
         $pedido = \App\Models\Pedido::where('id', $req->pedido_id)->where('user_id', auth()->id())->where('status', 'entregue')->firstOrFail();

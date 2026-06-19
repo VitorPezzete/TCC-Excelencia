@@ -110,6 +110,107 @@ class PagamentoController extends Controller
     }
 
     /**
+     * Exibe a view com o Checkout Bricks para pagamento com cartão.
+     *
+     * GET /pagamento/cartao/{pedido}
+     */
+    public function showPaymentForm(Request $request, int $pedidoId)
+    {
+        $pedido = Pedido::where('id', $pedidoId)
+            ->where('user_id', auth()->id())
+            ->with(['pagamento'])
+            ->firstOrFail();
+
+        if ($pedido->pagamento?->metodo !== 'cartao_online' || $pedido->pagamento?->status === 'aprovado') {
+            return redirect()->route('perfil')->with('tab', 'pedidos');
+        }
+
+        $publicKey = config('mercadopago.public_key');
+
+        return view('pagamento.bricks', compact('pedido', 'publicKey'));
+    }
+
+    /**
+     * Processa o token gerado pelo Checkout Bricks.
+     *
+     * POST /pagamento/cartao/{pedido}
+     */
+    public function processarCartao(Request $request, int $pedidoId)
+    {
+        $pedido = Pedido::where('id', $pedidoId)
+            ->where('user_id', auth()->id())
+            ->with(['pagamento', 'user'])
+            ->firstOrFail();
+
+        $pagamento = $pedido->pagamento;
+
+        if (!$pagamento || $pagamento->metodo !== 'cartao_online') {
+            return response()->json(['success' => false, 'message' => 'Método inválido.'], 422);
+        }
+
+        $this->configurarSDK();
+
+        try {
+            $client = new PaymentClient();
+
+            $body = [
+                'transaction_amount' => (float) $pedido->total,
+                'token'              => $request->token,
+                'description'        => "Pedido #{$pedido->id} — Excelência",
+                'installments'       => (int) $request->installments,
+                'payment_method_id'  => $request->payment_method_id,
+                'issuer_id'          => $request->issuer_id,
+                'payer'              => [
+                    'email' => $request->payer['email'] ?? $pedido->user->email,
+                    'identification' => $request->payer['identification'] ?? [],
+                ],
+                'metadata' => [
+                    'pedido_id' => $pedido->id,
+                ],
+            ];
+
+            $pagamentoMP = $client->create($body);
+
+            $statusMP = $pagamentoMP->status; // approved, in_process, rejected
+            
+            $statusLocal = match ((string) $statusMP) {
+                'approved'   => 'aprovado',
+                'rejected'   => 'rejeitado',
+                'cancelled'  => 'cancelado',
+                default      => 'pendente',
+            };
+
+            $pagamento->update([
+                'status'        => $statusLocal,
+                'mp_payment_id' => (string) $pagamentoMP->id,
+            ]);
+
+            if ($statusLocal === 'aprovado') {
+                $pedido->update(['status' => 'confirmado']);
+                session()->flash('success_checkout', $pedido->id);
+            }
+
+            return response()->json([
+                'success' => true,
+                'status'  => $statusMP,
+                'message' => $statusLocal === 'aprovado' ? 'Pagamento aprovado!' : 'Pagamento em processamento ou recusado.',
+                'redirect'=> route('perfil') . '?tab=pedidos'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Mercado Pago Card error', [
+                'pedido_id' => $pedido->id,
+                'message'   => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Não foi possível processar o pagamento.',
+            ], 500);
+        }
+    }
+
+    /**
      * Webhook do Mercado Pago — atualiza o status do pagamento/pedido.
      *
      * POST /webhook/mercadopago

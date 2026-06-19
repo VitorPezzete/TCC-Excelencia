@@ -17,7 +17,7 @@ class CheckoutController extends Controller
     {
         $request->validate([
             'endereco_id'      => 'required|exists:enderecos,id',
-            'metodo_pagamento' => 'required|in:cartao_credito,cartao_debito,pix,dinheiro',
+            'metodo_pagamento' => 'required|in:cartao_online,cartao_credito,cartao_debito,pix,dinheiro',
             'troco_para'       => 'nullable|numeric|min:0',
         ]);
 
@@ -92,8 +92,8 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            // Status inicial do pagamento: pendente para PIX online, null para presenciais
-            $statusPagamento = ($request->metodo_pagamento === 'pix') ? 'pendente' : null;
+            // Status inicial do pagamento: pendente para PIX e Cartão online, null para presenciais
+            $statusPagamento = in_array($request->metodo_pagamento, ['pix', 'cartao_online']) ? 'pendente' : null;
 
             Pagamento::create([
                 'pedido_id'  => $pedido->id,
@@ -112,6 +112,13 @@ class CheckoutController extends Controller
                     'success'     => true,
                     'requer_pix'  => true,
                     'pedido_id'   => $pedido->id,
+                ]);
+            }
+
+            if ($request->metodo_pagamento === 'cartao_online') {
+                return response()->json([
+                    'success'  => true,
+                    'redirect' => route('pagamento.cartao', ['pedido' => $pedido->id]),
                 ]);
             }
 

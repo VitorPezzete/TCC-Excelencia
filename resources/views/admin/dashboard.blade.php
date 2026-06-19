@@ -694,12 +694,14 @@
                                                     data-ativo="{{ $produto->ativo ? '1' : '0' }}">
                                                     {{ $produto->ativo ? 'Desativar' : 'Ativar' }}
                                                 </button>
+                                                {{--
                                                 <button
                                                     class="btn-deletar-produto p-1.5 text-gray-700 hover:text-red-400 transition-colors rounded-full hover:bg-red-500/10"
                                                     title="Excluir produto" data-id="{{ $produto->id }}"
                                                     data-nome="{{ $produto->nome }}">
                                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                                 </button>
+                                                --}}
                                             </div>
                                         </td>
                                     </tr>

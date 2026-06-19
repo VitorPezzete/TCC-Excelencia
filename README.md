@@ -64,9 +64,14 @@ O projeto Excelencia é uma plataforma de delivery desenvolvida como Trabalho de
 -  Itens do pedido com rastreamento
 
 ### 6. **Pagamentos**
--  Integração de sistema de pagamentos (estrutura criada)
+-  Integração de sistema de pagamentos com MercadoPago
+-  Registros de transações em `pagamentos`
 
-### 7. **Promoções**
+### 7. **Zonas de Entrega**
+-  Gerenciamento de áreas de entrega e tarifas por região
+-  Validação de entrega com base em endereço do usuário
+
+### 8. **Promoções**
 -  Sistema de cupons/descontos (tabela: `cupons`)
 
 ---
@@ -88,6 +93,16 @@ O projeto Excelencia é uma plataforma de delivery desenvolvida como Trabalho de
 - `itens_pedido` - Produtos em cada pedido
 - `itens_carrinho` - Items do carrinho do usuário
 - `pagamentos` - Registros de transações
+
+---
+
+## Novidades da Última Versão
+
+- Integração com MercadoPago para pagamentos online.
+- Novo controller PagamentoController para processar transações.
+- Adição de ZonaEntrega para gerenciamento de áreas de entrega.
+- Novas migrações para endereco, pagamentos e zonas_entrega.
+- Inclusão de novo logo e componentes de exibição de pedidos no perfil.
 
 ---
 

@@ -14,61 +14,93 @@
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Tamanho da fonte</span>
         <div class="flex gap-1">
-            <button id="acc-font-dec" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 font-bold text-sm transition-colors" aria-label="Diminuir fonte">A−</button>
-            <button id="acc-font-inc" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 font-bold text-sm transition-colors" aria-label="Aumentar fonte">A+</button>
+            <button id="acc-font-dec"
+                class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 font-bold text-sm transition-colors"
+                aria-label="Diminuir fonte">A−</button>
+            <button id="acc-font-inc"
+                class="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 font-bold text-sm transition-colors"
+                aria-label="Aumentar fonte">A+</button>
         </div>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Alto contraste</span>
-        <button id="acc-contrast" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-contrast"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
-    <div class="flex items-center justify-between">
-        <span class="text-sm text-gray-300">Sem animações</span>
-        <button id="acc-motion" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
-    </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Fonte legível</span>
-        <button id="acc-dyslexia" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-dyslexia"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Espaçamento extra</span>
-        <button id="acc-spacing" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-spacing"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Realçar links</span>
-        <button id="acc-links" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-links"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Cursor grande</span>
-        <button id="acc-cursor" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-cursor"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Cores invertidas</span>
-        <button id="acc-invert" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-invert"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Monocromático</span>
-        <button id="acc-grayscale" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-grayscale"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
     </div>
 
     <div class="flex items-center justify-between">
         <span class="text-sm text-gray-300">Alinhar à esquerda</span>
-        <button id="acc-align" class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+        <button id="acc-align"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]">Ligar</button>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-300">Tradutor de Libras</span>
+        <button id="acc-libras"
+            class="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-secondary hover:border-secondary/40 transition-colors min-w-[60px]" onclick="document.querySelector('[vw-access-button]').click();">Ligar</button>
     </div>
 
     <div class="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-        <button id="acc-reset" class="text-xs text-gray-600 hover:text-red-400 transition-colors flex items-center gap-1">
+        <button id="acc-reset"
+            class="text-xs text-gray-600 hover:text-red-400 transition-colors flex items-center gap-1">
             <span class="material-symbols-outlined text-[13px]">restart_alt</span> Redefinir tudo
         </button>
         <span id="acc-font-size-label" class="text-[10px] text-gray-700">16px</span>
     </div>
 </div>
 
+<div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+    </div>
+</div>
+<style>
+    [vw-access-button] {
+        display: none !important;
+    }
+</style>
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    });
+</script>

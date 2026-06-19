@@ -264,9 +264,12 @@ class AdminController extends Controller
             'descricao'    => 'required|string',
             'preco'        => 'required|numeric|min:0',
             'categoria_id' => 'required|exists:categorias,id',
-            'imagem'       => 'nullable|image|max:2048',
+            'imagem'       => 'nullable|image|max:5120',
             'ativo'        => 'nullable',
             'destaque'     => 'nullable',
+        ], [
+            'imagem.max'   => 'A imagem do produto não pode ser maior que 5MB.',
+            'imagem.image' => 'O arquivo selecionado deve ser uma imagem válida.',
         ]);
 
         $imagemPath = null;
@@ -294,9 +297,12 @@ class AdminController extends Controller
             'descricao'    => 'required|string',
             'preco'        => 'required|numeric|min:0',
             'categoria_id' => 'required|exists:categorias,id',
-            'imagem'       => 'nullable|image|max:2048',
+            'imagem'       => 'nullable|image|max:5120',
             'ativo'        => 'nullable',
             'destaque'     => 'nullable',
+        ], [
+            'imagem.max'   => 'A imagem do produto não pode ser maior que 5MB.',
+            'imagem.image' => 'O arquivo selecionado deve ser uma imagem válida.',
         ]);
 
         $produto = Produto::findOrFail($id);
@@ -360,12 +366,15 @@ class AdminController extends Controller
 
     public function destroyProduto($id)
     {
+        /*
         $produto = Produto::findOrFail($id);
         if ($produto->imagem && !str_starts_with($produto->imagem, 'http')) {
             Storage::disk('public')->delete($produto->imagem);
         }
         $produto->delete();
         return response()->json(['success' => true]);
+        */
+        return response()->json(['error' => 'A exclusão de produtos está temporariamente desativada.'], 403);
     }
 
     public function destroyCategoria($id)

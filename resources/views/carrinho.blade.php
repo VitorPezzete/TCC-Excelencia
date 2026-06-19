@@ -220,8 +220,9 @@
                     <select id="payment-method" required class="w-full bg-[#261715] border border-gray-700 text-text-light rounded-lg px-4 py-3 focus:outline-none focus:border-secondary transition-all">
                         <option value="">Selecione uma opção...</option>
                         <option value="pix">PIX</option>
-                        <option value="cartao_credito">Cartão de Crédito</option>
-                        <option value="cartao_debito">Cartão de Débito</option>
+                        <option value="cartao_online">Cartão de Crédito/Débito (Online)</option>
+                        <option value="cartao_credito">Cartão de Crédito (Na entrega)</option>
+                        <option value="cartao_debito">Cartão de Débito (Na entrega)</option>
                         <option value="dinheiro">Dinheiro (Pagará na entrega/retirada)</option>
                     </select>
 

@@ -12,7 +12,7 @@ html.high-contrast, html.invert-colors, html.grayscale-mode {
     filter: contrast(var(--acc-contrast)) brightness(var(--acc-brightness)) invert(var(--acc-invert)) grayscale(var(--acc-grayscale)) !important;
 }
 
-.reduce-motion * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+
 .dyslexia-font *:not(.material-symbols-outlined):not(.material-icons):not([class*="material"]):not(img):not(svg):not(svg *) {
     font-family: Arial, Helvetica, sans-serif !important;
     letter-spacing: 0.05em !important;
@@ -22,7 +22,7 @@ html.high-contrast, html.invert-colors, html.grayscale-mode {
 .highlight-links a { text-decoration: underline !important; text-underline-offset: 3px !important; outline: 1px dashed #d69c5e; outline-offset: 2px; border-radius: 2px; }
 
 .big-cursor * {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFF' stroke='%23000' stroke-width='2' d='M4 2l14 11-6 1 4 7-2 1-4-7-4 4z'/%3E%3C/svg%3E"), auto !important;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFF' stroke='%23000' stroke-width='2' d='M4 2l14 11-6 1 4 7-2 1-4-7-4 4z'/%3E%3C/svg%3E"), auto !important;
 }
 
 .align-left *:not(.material-symbols-outlined):not(.material-icons) {
