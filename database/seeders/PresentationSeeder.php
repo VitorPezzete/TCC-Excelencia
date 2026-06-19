@@ -94,7 +94,8 @@ class PresentationSeeder extends Seeder
                         'pedido_id' => $pedido->id,
                         'produto_id' => $produto->id,
                         'quantidade' => $quantidade,
-                        'preco_unitario' => $produto->preco
+                        'preco_unitario' => $produto->preco,
+                        'preco_total' => $produto->preco * $quantidade
                     ]);
                     
                     $total += ($produto->preco * $quantidade);
