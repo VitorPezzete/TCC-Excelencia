@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BYhG4nif.css",
+    "file": "assets/app-DMB_SMNk.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -21,7 +21,7 @@
     "src": "resources/images/products/Velvet.jpg"
   },
   "resources/js/accessibility.js": {
-    "file": "assets/accessibility-B2fxh7IW.js",
+    "file": "assets/accessibility-D4x7AF0h.js",
     "name": "accessibility",
     "src": "resources/js/accessibility.js",
     "isEntry": true
@@ -33,7 +33,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-ONcXPjl4.js",
+    "file": "assets/app-q3qsHAu0.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -42,7 +42,7 @@
     ]
   },
   "resources/js/carrinho.js": {
-    "file": "assets/carrinho-CZ7wWDf_.js",
+    "file": "assets/carrinho-CE05YqcV.js",
     "name": "carrinho",
     "src": "resources/js/carrinho.js",
     "isEntry": true
