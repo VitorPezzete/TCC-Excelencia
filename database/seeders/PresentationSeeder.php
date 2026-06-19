@@ -20,6 +20,8 @@ class PresentationSeeder extends Seeder
         Pedido::truncate();
         Avaliacao::truncate();
         ItemPedido::truncate();
+        \App\Models\Pagamento::truncate();
+        User::where('email', 'like', 'cliente%@teste.com')->delete();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // 1. Criar alguns Clientes (Users)
