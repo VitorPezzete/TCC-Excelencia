@@ -29,6 +29,7 @@ class PresentationSeeder extends Seeder
                 'name' => 'Cliente Apresentação ' . ($i + 1),
                 'email' => 'cliente' . ($i + 1) . '@teste.com',
                 'password' => bcrypt('12345678'),
+                'phone' => '119999999' . sprintf('%02d', $i),
                 'is_admin' => false,
                 'created_at' => Carbon::now()->subDays(rand(1, 30))
             ]);
