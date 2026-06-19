@@ -1,0 +1,62 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BYhG4nif.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/images/logo.png": {
+    "file": "assets/logo-CgezZ94V.png",
+    "src": "resources/images/logo.png"
+  },
+  "resources/images/products/Coxinha.jpg": {
+    "file": "assets/Coxinha-CHL6Smk7.jpg",
+    "src": "resources/images/products/Coxinha.jpg"
+  },
+  "resources/images/products/Velvet.jpg": {
+    "file": "assets/Velvet-C7pJeNHH.jpg",
+    "src": "resources/images/products/Velvet.jpg"
+  },
+  "resources/js/accessibility.js": {
+    "file": "assets/accessibility-B2fxh7IW.js",
+    "name": "accessibility",
+    "src": "resources/js/accessibility.js",
+    "isEntry": true
+  },
+  "resources/js/admin.js": {
+    "file": "assets/admin-DIyp5CZA.js",
+    "name": "admin",
+    "src": "resources/js/admin.js",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-ONcXPjl4.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/accessibility.js"
+    ]
+  },
+  "resources/js/carrinho.js": {
+    "file": "assets/carrinho-CZ7wWDf_.js",
+    "name": "carrinho",
+    "src": "resources/js/carrinho.js",
+    "isEntry": true
+  },
+  "resources/js/login.js": {
+    "file": "assets/login-Bc6HwpOO.js",
+    "name": "login",
+    "src": "resources/js/login.js",
+    "isEntry": true
+  },
+  "resources/js/perfil.js": {
+    "file": "assets/perfil-BdwGGnGp.js",
+    "name": "perfil",
+    "src": "resources/js/perfil.js",
+    "isEntry": true
+  }
+}
