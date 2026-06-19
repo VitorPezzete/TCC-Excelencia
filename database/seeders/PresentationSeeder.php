@@ -21,6 +21,7 @@ class PresentationSeeder extends Seeder
         Avaliacao::truncate();
         ItemPedido::truncate();
         \App\Models\Pagamento::truncate();
+        \App\Models\Endereco::truncate();
         User::where('email', 'like', 'cliente%@teste.com')->delete();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
@@ -48,6 +49,15 @@ class PresentationSeeder extends Seeder
         $status_possiveis = ['pendente', 'preparando', 'saiu_para_entrega', 'entregue', 'cancelado'];
         
         foreach ($users as $index => $user) {
+            // Criar um Endereco para o usuário
+            $endereco = \App\Models\Endereco::create([
+                'user_id' => $user->id,
+                'nome' => 'Casa',
+                'cep' => '01001000',
+                'numero' => '123',
+                'padrao' => true,
+            ]);
+
             // Cada usuário fará 1 ou 2 pedidos
             $qtd_pedidos = rand(1, 2);
             for ($p = 0; $p < $qtd_pedidos; $p++) {
@@ -61,9 +71,9 @@ class PresentationSeeder extends Seeder
                 $pedido = Pedido::create([
                     'user_id' => $user->id,
                     'status' => $status_sorteado,
+                    'subtotal' => 0, // Será calculado
                     'total' => 0, // Será calculado
-                    'endereco_id' => null, // Assumindo retirada para facilitar
-                    // Distribuir pedidos entre hoje e o último mês para os gráficos
+                    'endereco_id' => $endereco->id,
                     'created_at' => Carbon::now()->subDays(rand(0, 15)),
                 ]);
 
@@ -71,7 +81,6 @@ class PresentationSeeder extends Seeder
                     'pedido_id' => $pedido->id,
                     'metodo' => 'pix',
                     'troco_para' => null,
-                    'status' => ($status_sorteado === 'pendente') ? 'pendente' : 'aprovado',
                 ]);
 
                 $total = 0;
@@ -92,7 +101,10 @@ class PresentationSeeder extends Seeder
                 }
 
                 // Atualizar o total do pedido
-                $pedido->update(['total' => $total]);
+                $pedido->update([
+                    'subtotal' => $total,
+                    'total' => $total
+                ]);
                 
                 // Atualizar faturamento apenas se estiver entregue
                 if ($pedido->status === 'entregue' && rand(0,1)) {
