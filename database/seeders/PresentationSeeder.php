@@ -60,11 +60,16 @@ class PresentationSeeder extends Seeder
                     'user_id' => $user->id,
                     'status' => $status_sorteado,
                     'total' => 0, // Será calculado
-                    'metodo_pagamento' => 'pix',
-                    'troco_para' => null,
                     'endereco_id' => null, // Assumindo retirada para facilitar
                     // Distribuir pedidos entre hoje e o último mês para os gráficos
                     'created_at' => Carbon::now()->subDays(rand(0, 15)),
+                ]);
+
+                \App\Models\Pagamento::create([
+                    'pedido_id' => $pedido->id,
+                    'metodo' => 'pix',
+                    'troco_para' => null,
+                    'status' => ($status_sorteado === 'pendente') ? 'pendente' : 'aprovado',
                 ]);
 
                 $total = 0;
