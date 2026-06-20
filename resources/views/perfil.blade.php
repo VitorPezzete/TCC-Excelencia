@@ -456,38 +456,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const textarea      = document.getElementById('avaliacao-comentario');
     const btnEnviar     = document.getElementById('btn-enviar-avaliacao');
 
-    document.querySelectorAll('.btn-avaliar-pedido').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const jaAvaliou = this.dataset.jaAvaliou === '1';
-            avaliarPedidoId = this.dataset.pedidoId;
+    window.bindAvaliarButtons = function() {
+        document.querySelectorAll('.btn-avaliar-pedido').forEach(btn => {
+            // Remove listeners antigos se houver (para evitar duplicação)
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function() {
+                const jaAvaliou = this.dataset.jaAvaliou === '1';
+                avaliarPedidoId = this.dataset.pedidoId;
 
-            if (jaAvaliou) {
-                const nota = parseInt(this.dataset.avNota || '0');
-                const comentario = this.dataset.avComentario || '';
-                notaSelecionada = nota;
-                inputNota.value = nota;
-                textarea.value  = comentario;
-                textarea.setAttribute('readonly', 'true');
-                textarea.classList.add('opacity-60', 'cursor-not-allowed');
-                btnEnviar?.classList.add('hidden');
-                const titulo = document.getElementById('modal-av-titulo');
-                if (titulo) titulo.textContent = 'Sua Avaliação';
-                starBtns.forEach(b => b.disabled = true);
-            } else {
-                notaSelecionada = 0;
-                inputNota.value = 0;
-                textarea.value  = '';
-                textarea.removeAttribute('readonly');
-                textarea.classList.remove('opacity-60', 'cursor-not-allowed');
-                btnEnviar?.classList.remove('hidden');
-                const titulo = document.getElementById('modal-av-titulo');
-                if (titulo) titulo.textContent = 'Avaliar Pedido';
-                starBtns.forEach(b => b.disabled = false);
-            }
-            updateStars(notaSelecionada);
-            modalAv?.classList.remove('hidden');
+                if (jaAvaliou) {
+                    const nota = parseInt(this.dataset.avNota || '0');
+                    const comentario = this.dataset.avComentario || '';
+                    notaSelecionada = nota;
+                    inputNota.value = nota;
+                    textarea.value  = comentario;
+                    textarea.setAttribute('readonly', 'true');
+                    textarea.classList.add('opacity-60', 'cursor-not-allowed');
+                    btnEnviar?.classList.add('hidden');
+                    const titulo = document.getElementById('modal-av-titulo');
+                    if (titulo) titulo.textContent = 'Sua Avaliação';
+                    starBtns.forEach(b => b.disabled = true);
+                } else {
+                    notaSelecionada = 0;
+                    inputNota.value = 0;
+                    textarea.value  = '';
+                    textarea.removeAttribute('readonly');
+                    textarea.classList.remove('opacity-60', 'cursor-not-allowed');
+                    btnEnviar?.classList.remove('hidden');
+                    const titulo = document.getElementById('modal-av-titulo');
+                    if (titulo) titulo.textContent = 'Avaliar Pedido';
+                    starBtns.forEach(b => b.disabled = false);
+                }
+                updateStars(notaSelecionada);
+                modalAv?.classList.remove('hidden');
+            });
         });
-    });
+    };
+    
+    window.bindAvaliarButtons();
 
     document.getElementById('modal-avaliacao-user-close')?.addEventListener('click', fecharModal);
     document.getElementById('modal-avaliacao-user-cancel')?.addEventListener('click', fecharModal);

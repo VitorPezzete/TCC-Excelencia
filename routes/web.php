@@ -47,6 +47,12 @@ Route::post('/cadastro', [AuthController::class, 'register'])->name('register')-
 Route::post('/login',    [AuthController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('/logout',   [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Rotas de Recuperação de Senha
+Route::get('forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showLinkRequestForm'])->name('password.request')->middleware('guest');
+Route::post('forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email')->middleware('guest');
+Route::get('reset-password/{token}', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset')->middleware('guest');
+Route::post('reset-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'reset'])->name('password.update')->middleware('guest');
+
 Route::middleware('auth')->group(function () {
     Route::get('/perfil', [ProfileController::class, 'index'])->name('perfil');
     Route::post('/perfil/dados', [ProfileController::class, 'updateData'])->name('perfil.dados');
@@ -93,6 +99,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/pedidos',                    [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
     Route::get('/pedidos/api/ativos',         [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
     Route::patch('/pedidos/{id}/status',      [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
+    Route::post('/store-status',              [\App\Http\Controllers\AdminController::class, 'toggleStoreStatus'])->name('store.status.toggle');
 
     // Produtos
     Route::get('/produtos',                          [\App\Http\Controllers\AdminController::class, 'produtos'])->name('produtos');

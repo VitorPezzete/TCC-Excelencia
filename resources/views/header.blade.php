@@ -1,4 +1,12 @@
-<nav class="fixed w-full z-50 bg-background-dark/95 backdrop-blur-md border-b border-secondary/15">
+@if(isset($storeIsOpen) && !$storeIsOpen)
+    <div class="bg-red-600 text-white text-center py-2 font-bold text-sm shadow-md flex items-center justify-center gap-2 fixed w-full top-0 z-[100]">
+        <span class="material-symbols-outlined text-[18px]">error</span>
+        LOJA FECHADA NO MOMENTO. Não estamos aceitando novos pedidos.
+    </div>
+    <nav class="fixed w-full z-50 top-9 bg-background-dark/95 backdrop-blur-md border-b border-secondary/15">
+@else
+    <nav class="fixed w-full z-50 top-0 bg-background-dark/95 backdrop-blur-md border-b border-secondary/15">
+@endif
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-4">
 
@@ -188,3 +196,4 @@
 </script>
 
 @include('partials.accessibility')
+@include('partials.global_alerts')

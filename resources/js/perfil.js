@@ -334,19 +334,27 @@ document.addEventListener('DOMContentLoaded', function () {
     // SPA POLLING LOGIC & NOTIFICATIONS (CLIENTE)
     let lastOrderStatuses = null;
     
-    function playBeep() {
+    function playTone(freq, type, duration, startTime, vol=0.5) {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(1046.50, audioCtx.currentTime); // C6 note
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-            setTimeout(() => oscillator.stop(), 200);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime + startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + startTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + startTime);
+            osc.stop(audioCtx.currentTime + startTime + duration);
         } catch(e) {}
+    }
+
+    function playChimeStatusChange() {
+        playTone(523.25, 'sine', 0.6, 0.0, 0.5); // C5
+        playTone(659.25, 'sine', 0.6, 0.1, 0.5); // E5
+        playTone(783.99, 'sine', 0.8, 0.2, 0.5); // G5
+        playTone(1046.50, 'sine', 1.2, 0.3, 0.5); // C6
     }
 
     if ('Notification' in window && Notification.permission === 'default') {
@@ -376,14 +384,29 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (hasChanged) {
-                playBeep();
+                playChimeStatusChange();
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('Status do Pedido Atualizado!', { body: msgAlerta, icon: '/favicon.ico' });
                 }
+                
+                if (window.GlobalAlerts) {
+                    window.GlobalAlerts.popup(
+                        'Status Atualizado!',
+                        msgAlerta,
+                        'info',
+                        [
+                            { text: 'Ok', color: 'bg-secondary text-primary hover:bg-[#c2884a]' }
+                        ]
+                    );
+                }
+
                 const tbody = document.getElementById('perfil-pedidos-list');
                 if (tbody && data.html) {
                     tbody.innerHTML = data.html;
                     bindClientButtons();
+                    if (typeof window.bindAvaliarButtons === 'function') {
+                        window.bindAvaliarButtons();
+                    }
                 }
             }
             lastOrderStatuses = data.statuses;

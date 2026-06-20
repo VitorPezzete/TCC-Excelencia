@@ -101,7 +101,10 @@ O projeto Excelencia é uma plataforma de delivery desenvolvida como Trabalho de
 - Integração com MercadoPago para pagamentos online.
 - Novo controller PagamentoController para processar transações.
 - Adição de ZonaEntrega para gerenciamento de áreas de entrega.
-- Novas migrações para endereco, pagamentos e zonas_entrega.
+- Novo modelo `Setting` e migração para controlar o status da loja.
+- Global alerts e popups no frontend para notificações e ações do administrador.
+- Sistema de recuperação de senha com rotas `forgot-password` e `reset-password`.
+- Webhook do MercadoPago para confirmações automáticas de pagamento.
 - Inclusão de novo logo e componentes de exibição de pedidos no perfil.
 
 ---
@@ -115,6 +118,10 @@ GET  /cardapio            → Visualizar cardápio
 GET  /login               → Formulário de login
 POST /cadastro            → Registrar novo usuário
 POST /login               → Autenticar usuário
+GET  /forgot-password     → Formulário de recuperação de senha
+POST /forgot-password     → Enviar link de redefinição
+GET  /reset-password/{token} → Formulário para nova senha
+POST /reset-password      → Atualizar senha do usuário
 ```
 
 ### Protegidas (requer autenticação)

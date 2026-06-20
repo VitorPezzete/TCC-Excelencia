@@ -27,14 +27,19 @@
         <div class="flex gap-2 flex-wrap">
             <button class="btn-detalhes-pedido px-5 py-2 bg-transparent border border-secondary text-secondary hover:bg-secondary hover:text-background-dark font-bold rounded-full transition-colors text-sm" data-pedido='@json($pedido->load("itens.produto", "endereco"))'>Ver Detalhes</button>
             @if($pedido->status === 'entregue')
-                <button class="btn-avaliar-pedido px-5 py-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 font-bold rounded-full transition-colors text-sm flex items-center gap-1.5"
-                    data-pedido-id="{{ $pedido->id }}"
-                    data-ja-avaliou="{{ $pedido->avaliacao ? '1' : '0' }}"
-                    data-av-nota="{{ $pedido->avaliacao?->nota ?? '' }}"
-                    data-av-comentario="{{ $pedido->avaliacao?->comentario ?? '' }}">
-                    <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">star</span>
-                    {{ $pedido->avaliacao ? 'Ver Avaliação' : 'Avaliar' }}
-                </button>
+                @if($pedido->avaliacao)
+                    <a href="{{ route('avaliacoes.publicas') }}" class="px-5 py-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 font-bold rounded-full transition-colors text-sm flex items-center gap-1.5 inline-flex">
+                        <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">star</span>
+                        Ver Avaliação
+                    </a>
+                @else
+                    <button class="btn-avaliar-pedido px-5 py-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 font-bold rounded-full transition-colors text-sm flex items-center gap-1.5"
+                        data-pedido-id="{{ $pedido->id }}"
+                        data-ja-avaliou="0">
+                        <span class="material-symbols-outlined text-[15px]" style="font-variation-settings:'FILL' 1">star</span>
+                        Avaliar
+                    </button>
+                @endif
             @endif
             @if($pedido->status === 'pendente')
                 <button class="btn-cancelar-pedido px-5 py-2 bg-transparent border border-red-500/50 text-red-500 hover:bg-red-500/10 font-bold rounded-full transition-colors text-sm" data-pedido-id="{{ $pedido->id }}">Cancelar</button>

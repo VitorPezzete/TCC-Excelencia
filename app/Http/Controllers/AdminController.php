@@ -185,6 +185,18 @@ class AdminController extends Controller
         ));
     }
 
+    public function toggleStoreStatus()
+    {
+        try {
+            $setting = \App\Models\Setting::firstOrCreate(['key' => 'is_store_open'], ['value' => '1']);
+            $newValue = $setting->value === '1' ? '0' : '1';
+            $setting->update(['value' => $newValue]);
+            return response()->json(['success' => true, 'is_open' => $newValue === '1']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function apiAtivos()
     {
         $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])
@@ -204,12 +216,20 @@ class AdminController extends Controller
             return $pedido->status === 'pendente' && $pedido->created_at < now()->subMinutes(5);
         })->count();
 
+        // Real-time Dashboard KPIs
+        $totalFaturamentoHoje = Pedido::whereDate('created_at', today())
+            ->whereNotIn('status', ['cancelado'])
+            ->sum('total');
+        $pedidosHojeCount = Pedido::whereDate('created_at', today())->count();
+
         return response()->json([
             'html' => $html,
             'count' => $pedidosHoje_lista->count(),
             'latest_id' => $pedidosHoje_lista->max('id') ?? 0,
             'status_counts' => $statusCounts,
-            'pedidos_atrasados_count' => $pedidosAtrasadosCount
+            'pedidos_atrasados_count' => $pedidosAtrasadosCount,
+            'faturamento_hoje' => $totalFaturamentoHoje,
+            'pedidos_hoje_count' => $pedidosHojeCount
         ]);
     }
 
@@ -396,6 +416,9 @@ class AdminController extends Controller
             'created_at' => $pedido->created_at->format('d/m/Y H:i'),
             'updated_at' => $pedido->updated_at->format('d/m/Y H:i'),
             'total'      => number_format($pedido->total, 2, ',', '.'),
+            'subtotal'   => number_format($pedido->subtotal, 2, ',', '.'),
+            'taxa_entrega'=> number_format($pedido->taxa_entrega, 2, ',', '.'),
+            'troco_para' => $pedido->troco_para ? number_format($pedido->troco_para, 2, ',', '.') : null,
             'cliente'    => $pedido->user?->name ?? '—',
             'email'      => $pedido->user?->email ?? '—',
             'pagamento'  => $pedido->pagamento?->metodo ?? '—',

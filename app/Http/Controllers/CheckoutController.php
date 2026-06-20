@@ -21,6 +21,15 @@ class CheckoutController extends Controller
             'troco_para'       => 'nullable|numeric|min:0',
         ]);
 
+        $is_open = true;
+        try {
+            $is_open = (\App\Models\Setting::where('key', 'is_store_open')->value('value') ?? '1') === '1';
+        } catch (\Exception $e) {}
+
+        if (!$is_open) {
+            return response()->json(['success' => false, 'message' => 'A loja está fechada no momento. Não é possível fazer novos pedidos.'], 400);
+        }
+
         $user          = Auth::user();
         $itensCarrinho = $user->itensCarrinho()->with('produto')->get();
 

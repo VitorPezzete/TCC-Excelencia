@@ -269,6 +269,14 @@
 
         {{-- User box --}}
         <div class="p-4 border-t border-white/[0.04] space-y-3">
+            <div class="flex items-center justify-between bg-white/[0.02] border border-white/[0.04] rounded-lg px-3 py-2">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Loja Aberta</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-store-status" class="sr-only" {{ (\App\Models\Setting::where('key', 'is_store_open')->value('value') ?? '1') === '1' ? 'checked' : '' }}>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                </label>
+            </div>
             <div class="flex items-center gap-3">
                 <div
                     class="w-8 h-8 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary font-bold text-xs shrink-0">
@@ -346,7 +354,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Pedidos Hoje</p>
-                        <p class="text-xl md:text-2xl font-bold text-blue-400 font-display">{{ $pedidosHoje }}</p>
+                        <p id="kpi-pedidos-hoje" class="text-xl md:text-2xl font-bold text-blue-400 font-display">{{ $pedidosHoje }}</p>
                         <div class="flex items-center gap-1 mt-1 text-[10px]">
                             @if($variacaoPedidos >= 0)
                                 <span class="text-green-400 font-bold">▲ {{ number_format($variacaoPedidos, 1, ',', '.') }}%</span>

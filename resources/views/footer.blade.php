@@ -49,7 +49,7 @@
                 <h4 class="font-display text-xl font-bold text-white mb-6 flex items-center gap-2">
                     <span class="w-4 h-px bg-secondary"></span> Horário
                 </h4>
-                <ul class="space-y-3">
+                <ul class="space-y-3 mb-4">
                     <li class="flex justify-between border-b border-gray-800 pb-2">
                         <span class="text-sm">Seg - Sab</span>
                         <span class="text-sm text-secondary font-bold">07:00 - 19:00</span>
@@ -59,6 +59,21 @@
                         <span class="text-sm text-red-400 font-bold">Fechado</span>
                     </li>
                 </ul>
+                
+                @if(isset($storeIsOpen))
+                    <div class="mt-4 flex items-center justify-center p-3 rounded-lg border shadow-inner {{ $storeIsOpen ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30' }}">
+                        @if($storeIsOpen)
+                            <span class="flex h-3 w-3 relative mr-3">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                            <span class="text-green-400 font-bold text-sm tracking-wider uppercase">Loja Aberta</span>
+                        @else
+                            <span class="material-symbols-outlined text-red-400 text-lg mr-2">block</span>
+                            <span class="text-red-400 font-bold text-sm tracking-wider uppercase">Loja Fechada</span>
+                        @endif
+                    </div>
+                @endif
             </div>
         </div>
         <div class="mt-16 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">

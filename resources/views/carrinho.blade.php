@@ -132,9 +132,15 @@
                 </div>
 
                 <div class="pt-4">
-                    <button id="btn-checkout" class="w-full bg-secondary hover:bg-[#c2884a] text-primary font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 {{ count($itens) === 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ count($itens) === 0 ? 'disabled' : '' }}>
-                        Finalizar Pedido <span class="material-symbols-outlined">arrow_forward</span>
-                    </button>
+                    @if(isset($storeIsOpen) && !$storeIsOpen)
+                        <button disabled class="w-full bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
+                            Loja Fechada <span class="material-symbols-outlined text-lg">block</span>
+                        </button>
+                    @else
+                        <button id="btn-checkout" class="w-full bg-secondary hover:bg-[#c2884a] text-primary font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 {{ count($itens) === 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ count($itens) === 0 ? 'disabled' : '' }}>
+                            Finalizar Pedido <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    @endif
                 </div>
             </div>
         </aside>

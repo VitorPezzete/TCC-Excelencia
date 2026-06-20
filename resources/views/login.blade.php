@@ -11,7 +11,6 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-<script>tailwind.config = {};</script>
 <style>
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #1A0F0E; }
@@ -100,12 +99,12 @@
                     @csrf
 
                     <div class="relative group">
-                        <label class="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block" for="email">E-mail</label>
+                        <label class="text-xs font-bold text-secondary uppercase tracking-wider mb-1 block" for="login">E-mail ou Telefone</label>
                         <div class="flex items-center gap-3 border-b border-secondary/30 focus-within:border-secondary transition-colors">
-                            <span class="material-icons text-gray-500 group-focus-within:text-secondary transition-colors text-lg">mail</span>
-                            <input class="form-input w-full py-3 bg-transparent text-white placeholder-gray-600 focus:ring-0 border-none" name="email" id="email" placeholder="seu@email.com" type="email" value="{{ old('email') }}"/>
+                            <span class="material-icons text-gray-500 group-focus-within:text-secondary transition-colors text-lg">person</span>
+                            <input class="form-input w-full py-3 bg-transparent text-white placeholder-gray-600 focus:ring-0 border-none" name="login" id="login" placeholder="E-mail ou (DD) 90000-0000" type="text" value="{{ old('login') }}"/>
                         </div>
-                        @error('email')
+                        @error('login')
                             <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
@@ -129,7 +128,7 @@
                             <input class="h-4 w-4 rounded border-gray-700 bg-black/30 text-secondary focus:ring-secondary focus:ring-offset-background-dark" name="remember" id="remember-me" type="checkbox"/>
                             <label class="ml-2 block text-sm text-gray-400" for="remember-me">Lembrar de mim</label>
                         </div>
-                        <!-- <a class="text-sm font-semibold text-secondary hover:text-[#c2884a] transition-colors" href="#">Esqueceu a senha?</a> -->
+                        <a class="text-sm font-semibold text-secondary hover:text-[#c2884a] transition-colors" href="{{ route('password.request') }}">Esqueceu a senha?</a>
                     </div>
 
                     <button class="w-full bg-secondary hover:bg-[#c2884a] text-primary py-4 px-8 rounded-xl font-bold text-center transition-all shadow-[0_0_15px_rgba(214,156,94,0.2)] hover:shadow-[0_0_20px_rgba(214,156,94,0.4)] flex justify-center items-center gap-2 transform hover:-translate-y-1 mt-8" type="submit">

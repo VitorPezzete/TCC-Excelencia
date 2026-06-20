@@ -29,6 +29,30 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 
+    // Toggle Store Status
+    const toggleStore = document.getElementById('toggle-store-status');
+    if (toggleStore) {
+        toggleStore.addEventListener('change', async function() {
+            try {
+                const res = await fetch('/admin/store-status', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    this.checked = !this.checked;
+                    alert('Erro ao alterar status da loja.');
+                }
+            } catch (e) {
+                this.checked = !this.checked;
+                alert('Erro de conexão ao alterar status.');
+            }
+        });
+    }
+
     // Modal de Confirmação Customizado
     const modalConfirm    = document.getElementById('modal-confirm');
     const modalConfirmMsg = document.getElementById('modal-confirm-msg');
@@ -957,6 +981,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 ` : ''}
             </div>`).join('');
 
+        let detalhesPagamento = '';
+        if (p.pagamento === 'dinheiro' && p.troco_para) {
+            detalhesPagamento = `<p class="text-[11px] text-amber-400">Troco para: R$ ${p.troco_para}</p>`;
+        }
+        
         detailContent.innerHTML = `
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
@@ -968,22 +997,39 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="bg-black/20 rounded-xl p-3 space-y-0.5">
                         <p class="text-[10px] text-gray-600 uppercase tracking-widest">Pagamento</p>
                         <p class="text-sm font-semibold text-white">${METODO_LABELS[p.pagamento] || p.pagamento}</p>
-                        <p class="text-[11px] text-gray-600">Total: R$ ${p.total}</p>
+                        ${detalhesPagamento}
                     </div>
                     <div class="bg-black/20 rounded-xl p-3 space-y-0.5 col-span-2">
                         <p class="text-[10px] text-gray-600 uppercase tracking-widest">Endereço</p>
                         <p class="text-sm text-gray-300">${p.endereco}</p>
                     </div>
                     ${p.observacoes ? `<div class="bg-amber-900/10 border border-amber-800/30 rounded-xl p-3 col-span-2">
-                        <p class="text-[10px] text-amber-500 uppercase tracking-widest mb-1">Observações</p>
+                        <p class="text-[10px] text-amber-500 uppercase tracking-widest mb-1">Observações Gerais</p>
                         <p class="text-sm text-gray-300">${p.observacoes}</p>
                     </div>` : ''}
                 </div>
+                
                 <div>
                     <p class="text-[10px] text-gray-600 uppercase tracking-widest mb-2">Itens do Pedido</p>
-                    <div>${itensHtml}</div>
+                    <div class="bg-black/20 rounded-xl p-2">${itensHtml}</div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-600">
+
+                <div class="bg-black/30 rounded-xl p-3 space-y-1.5 border border-white/[0.04]">
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <span>Subtotal</span>
+                        <span>R$ ${p.subtotal}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <span>Taxa de Entrega</span>
+                        <span class="${p.taxa_entrega === '0,00' ? 'text-green-400' : ''}">${p.taxa_entrega === '0,00' ? 'Grátis' : 'R$ ' + p.taxa_entrega}</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg text-secondary border-t border-white/10 pt-1.5 mt-1.5">
+                        <span>Total</span>
+                        <span>R$ ${p.total}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-600 mt-2">
                     <span>Criado em: ${p.created_at}</span>
                     <span class="text-right">Atualizado: ${p.updated_at}</span>
                 </div>
@@ -1003,20 +1049,31 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     let lastKnownOrderId = 0;
+    let pollCounter = 0;
     
-    function playBeep() {
+    function playTone(freq, type, duration, startTime, vol=0.5) {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-            setTimeout(() => oscillator.stop(), 200);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime + startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + startTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + startTime);
+            osc.stop(audioCtx.currentTime + startTime + duration);
         } catch(e) {}
+    }
+
+    function playChimeNewOrder() {
+        // Agora disparado pelo global_alerts.blade.php
+    }
+
+    function playWarningReminder() {
+        playTone(880, 'square', 0.2, 0, 1.0);
+        playTone(880, 'square', 0.2, 0.3, 1.0);
     }
 
     if ('Notification' in window && Notification.permission === 'default') {
@@ -1024,13 +1081,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function pollAdminOrders() {
+        pollCounter++;
         try {
             const res = await fetch('/admin/pedidos/api/ativos');
             if (!res.ok) return;
             const data = await res.json();
             
             if (lastKnownOrderId > 0 && data.latest_id > lastKnownOrderId) {
-                playBeep();
+                playChimeNewOrder();
                 showNewOrderAlert(data.latest_id);
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('Novo Pedido!', { body: 'Um novo pedido acabou de chegar na cozinha.', icon: '/favicon.ico' });
@@ -1072,6 +1130,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
+            if (data.pedidos_hoje_count !== undefined) {
+                const kpi = document.getElementById('kpi-pedidos-hoje');
+                if (kpi) kpi.textContent = data.pedidos_hoje_count;
+            }
+
             if (data.pedidos_atrasados_count !== undefined) {
                 const alertAtrasados = document.getElementById('alert-pedidos-atrasados');
                 const countSpan = document.getElementById('count-atrasados');
@@ -1079,6 +1142,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.pedidos_atrasados_count > 0) {
                         countSpan.textContent = data.pedidos_atrasados_count;
                         alertAtrasados.classList.remove('hidden');
+                        // Toca aviso sonoro a cada 6 ciclos (~60 segundos)
+                        if (pollCounter % 6 === 0) {
+                            playWarningReminder();
+                        }
                     } else {
                         alertAtrasados.classList.add('hidden');
                     }

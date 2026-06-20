@@ -19,6 +19,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            try {
+                $is_open = \App\Models\Setting::where('key', 'is_store_open')->value('value') ?? '1';
+                $view->with('storeIsOpen', $is_open === '1');
+            } catch (\Exception $e) {
+                $view->with('storeIsOpen', true);
+            }
+        });
     }
 }
