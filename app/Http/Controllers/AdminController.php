@@ -237,6 +237,28 @@ class AdminController extends Controller
         ])->header('Cache-Control', 'no-store');
     }
 
+    public function subscribePush(Request $request)
+    {
+        $endpoint = $request->endpoint;
+        $token = $request->keys['auth'];
+        $key = $request->keys['p256dh'];
+        $user = auth()->user();
+
+        $user->updatePushSubscription($endpoint, $key, $token);
+        
+        return response()->json(['success' => true], 200);
+    }
+
+    public function testPush()
+    {
+        $user = auth()->user();
+        // Crie um pedido dummy para testar
+        $pedido = new \App\Models\Pedido(['id' => 9999, 'total' => 123.45]);
+        $user->notify(new \App\Notifications\NewOrderPushNotification($pedido));
+        
+        return response()->json(['success' => true], 200);
+    }
+
 
     public function apiAtivos()
     {
@@ -293,8 +315,14 @@ class AdminController extends Controller
             'status' => 'required|in:pendente,confirmado,preparando,saiu_para_entrega,entregue,cancelado',
         ]);
 
-        $pedido = Pedido::findOrFail($id);
+        $pedido = Pedido::with('user')->findOrFail($id);
         $pedido->update(['status' => $request->status]);
+
+        // Enviar notificação push para o cliente
+        if ($pedido->user) {
+            $pedido->user->notify(new \App\Notifications\OrderStatusNotification($pedido));
+        }
+
         return response()->json(['success' => true, 'status' => $request->status]);
     }
 

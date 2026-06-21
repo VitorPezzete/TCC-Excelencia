@@ -56,6 +56,10 @@ Route::post('reset-password', [\App\Http\Controllers\Auth\PasswordResetControlle
 
 Route::middleware('auth')->group(function () {
     Route::get('/perfil', [ProfileController::class, 'index'])->name('perfil');
+
+    // Notificações Web Push (Cliente e Admin)
+    Route::post('/push/subscribe', [\App\Http\Controllers\AdminController::class, 'subscribePush']);
+
     Route::post('/perfil/dados', [ProfileController::class, 'updateData'])->name('perfil.dados');
     Route::post('/perfil/senha', [ProfileController::class, 'updatePassword'])->name('perfil.senha');
     Route::post('/perfil/enderecos', [ProfileController::class, 'storeAddress'])->name('perfil.enderecos.store');
@@ -84,10 +88,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/avaliacoes', function (\Illuminate\Http\Request $req) {
         $req->validate(['pedido_id' => 'required|integer', 'nota' => 'required|integer|min:1|max:5', 'comentario' => 'nullable|string|max:1000']);
         $pedido = \App\Models\Pedido::where('id', $req->pedido_id)->where('user_id', auth()->id())->where('status', 'entregue')->firstOrFail();
-        \App\Models\Avaliacao::updateOrCreate(
+        $avaliacao = \App\Models\Avaliacao::updateOrCreate(
             ['user_id' => auth()->id(), 'pedido_id' => $pedido->id],
             ['nota' => $req->nota, 'comentario' => $req->comentario]
         );
+
+        $admins = \App\Models\User::where('is_admin', true)->get();
+        \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewReviewNotification($avaliacao));
+
         return response()->json(['ok' => true]);
     })->name('avaliacoes.store');
 });
@@ -100,6 +108,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/pedidos', [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
     Route::get('/pedidos/api/ativos', [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
     Route::patch('/pedidos/{id}/status', [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
+    
+    // Notificações Web Push de Teste (Somente Admin)
+    Route::post('/push/test', [\App\Http\Controllers\AdminController::class, 'testPush']);
+
     Route::get('/store-status',               [\App\Http\Controllers\AdminController::class, 'getStoreStatus'])->name('store.status');
     Route::get('/schedule',                   [\App\Http\Controllers\AdminController::class, 'getSchedule'])->name('schedule.get');
     Route::post('/schedule',                  [\App\Http\Controllers\AdminController::class, 'updateSchedule'])->name('schedule.update');

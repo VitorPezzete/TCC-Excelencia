@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-ByHxiMn5.css",
+    "file": "assets/app-y7Vd52xC.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -36,7 +36,7 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-KxlIfZZH.js",
+    "file": "assets/admin-DPpaybac.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true
@@ -69,7 +69,7 @@
     "isEntry": true
   },
   "resources/js/perfil.js": {
-    "file": "assets/perfil-CMR6IMZ7.js",
+    "file": "assets/perfil-BbRNbl25.js",
     "name": "perfil",
     "src": "resources/js/perfil.js",
     "isEntry": true

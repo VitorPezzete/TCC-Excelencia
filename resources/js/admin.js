@@ -1280,4 +1280,125 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(pollAdminOrders, 10000);
     setTimeout(pollAdminOrders, 1000);
 
+    // ==========================================
+    // Web Push Notifications
+    // ==========================================
+    const btnSubscribePush = document.getElementById('btn-subscribe-push');
+    const pushStatusText = document.getElementById('push-status-text');
+
+    async function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    async function checkPushStatus() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            if (pushStatusText) pushStatusText.textContent = 'Não Suportado no Navegador';
+            if (btnSubscribePush) btnSubscribePush.style.display = 'none';
+            return;
+        }
+
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                if (pushStatusText) pushStatusText.textContent = 'Status: Ativado neste aparelho';
+                if (btnSubscribePush) {
+                    btnSubscribePush.textContent = 'Testar Notificação';
+                    btnSubscribePush.classList.replace('bg-blue-600', 'bg-green-600');
+                    btnSubscribePush.classList.replace('hover:bg-blue-500', 'hover:bg-green-500');
+                }
+                return true;
+            }
+        }
+        
+        if (Notification.permission === 'denied') {
+            if (pushStatusText) pushStatusText.textContent = 'Permissão Bloqueada (ver cadeado do site)';
+            if (btnSubscribePush) btnSubscribePush.style.display = 'none';
+        } else {
+            if (pushStatusText) pushStatusText.textContent = 'Status: Não Ativado';
+            if (btnSubscribePush) btnSubscribePush.textContent = 'Ativar Neste Dispositivo';
+        }
+        return false;
+    }
+
+    async function subscribeToPush() {
+        try {
+            if (btnSubscribePush) {
+                btnSubscribePush.disabled = true;
+                btnSubscribePush.textContent = 'Ativando...';
+            }
+
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            await navigator.serviceWorker.ready;
+
+            const existingSub = await registration.pushManager.getSubscription();
+            if (existingSub) {
+                // Já inscrito, testar
+                await fetch('/admin/push/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    }
+                });
+                showToast('Notificação de teste enviada!', 'success');
+                checkPushStatus();
+                if (btnSubscribePush) btnSubscribePush.disabled = false;
+                return;
+            }
+
+            const vapidPublicKey = document.querySelector('meta[name="vapid-pub-key"]')?.content;
+            if (!vapidPublicKey) {
+                throw new Error('VAPID public key não encontrada.');
+            }
+
+            const convertedVapidKey = await urlBase64ToUint8Array(vapidPublicKey);
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedVapidKey
+            });
+
+            // Enviar ao servidor
+            const response = await fetch('/admin/push/subscribe', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf
+                }
+            });
+
+            if (response.ok) {
+                showToast('Notificações ativadas com sucesso!', 'success');
+                checkPushStatus();
+            } else {
+                throw new Error('Erro ao salvar no servidor.');
+            }
+        } catch (error) {
+            console.error('Erro no Push:', error);
+            showToast('Erro ao ativar notificações: ' + error.message, 'error');
+        } finally {
+            if (btnSubscribePush) btnSubscribePush.disabled = false;
+        }
+    }
+
+    if (btnSubscribePush) {
+        btnSubscribePush.addEventListener('click', subscribeToPush);
+        checkPushStatus();
+    }
+
 });

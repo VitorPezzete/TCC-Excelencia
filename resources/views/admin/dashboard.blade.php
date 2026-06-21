@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#c2884a">
+    <meta name="vapid-pub-key" content="{{ config('webpush.vapid.public_key') }}">
     <title>Excelência - Admin Dashboard</title>
     <link rel="icon" type="image/png" href="/images/logo.png">
     <link
@@ -912,6 +914,32 @@
                         <div class="bg-secondary/5 border border-secondary/15 rounded-xl p-4 flex items-start gap-3">
                             <span class="material-symbols-outlined text-secondary text-[18px] mt-0.5 shrink-0">info</span>
                             <p class="text-[11px] text-gray-500">Ao salvar, o status da loja é atualizado imediatamente. Clientes em outras páginas verão o novo status em até 30 segundos (polling automático).</p>
+                        </div>
+                    </div>
+
+                    {{-- Web Push Notifications --}}
+                    <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] p-5 md:p-6 space-y-4 mt-6">
+                        <div>
+                            <h2 class="font-bold text-white text-base">Notificações em Segundo Plano</h2>
+                            <p class="text-[11px] text-gray-600 mt-0.5">Receba alertas de novos pedidos mesmo quando a aba do navegador estiver fechada ou o celular bloqueado.</p>
+                        </div>
+                        
+                        <div class="bg-black/30 border border-white/[0.06] rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-blue-400 text-3xl">notifications_active</span>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-200" id="push-status-text">Status: Desconhecido</p>
+                                    <p class="text-[10px] text-gray-500">Requer permissão do navegador</p>
+                                </div>
+                            </div>
+                            <button id="btn-subscribe-push" class="px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-full hover:bg-blue-500 transition-all shadow-md w-full sm:w-auto">
+                                Ativar Neste Dispositivo
+                            </button>
+                        </div>
+
+                        <div class="text-[10px] text-gray-600 space-y-1">
+                            <p><strong>Dica:</strong> Se usar iPhone, adicione este site à sua "Tela de Início" antes de ativar.</p>
+                            <p><strong>Privacidade:</strong> Apenas pedidos novos acionam notificações. Cada dispositivo/celular precisa ser ativado individualmente aqui.</p>
                         </div>
                     </div>
                 </div>

@@ -416,4 +416,116 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(pollClientOrders, 10000);
     setTimeout(pollClientOrders, 1000);
 
+    // ==========================================
+    // Web Push Notifications (Client)
+    // ==========================================
+    const btnSubscribePush = document.getElementById('btn-client-subscribe-push');
+    const pushStatusText = document.getElementById('client-push-status');
+
+    async function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+        return outputArray;
+    }
+
+    async function checkClientPushStatus() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            if (pushStatusText) pushStatusText.textContent = 'Não suportado no seu navegador/dispositivo.';
+            if (btnSubscribePush) btnSubscribePush.style.display = 'none';
+            return;
+        }
+
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                if (pushStatusText) {
+                    pushStatusText.textContent = 'Ativado neste dispositivo ✅';
+                    pushStatusText.classList.replace('text-gray-400', 'text-green-400');
+                }
+                if (btnSubscribePush) {
+                    btnSubscribePush.textContent = 'Notificações Ativadas';
+                    btnSubscribePush.classList.replace('bg-blue-600', 'bg-green-600');
+                    btnSubscribePush.classList.replace('hover:bg-blue-500', 'hover:bg-green-500');
+                    btnSubscribePush.disabled = true;
+                }
+                return true;
+            }
+        }
+        
+        if (Notification.permission === 'denied') {
+            if (pushStatusText) {
+                pushStatusText.textContent = 'Bloqueado. Permita as notificações nas configurações do navegador.';
+                pushStatusText.classList.replace('text-gray-400', 'text-red-400');
+            }
+            if (btnSubscribePush) btnSubscribePush.style.display = 'none';
+        } else {
+            if (pushStatusText) pushStatusText.textContent = 'Desativado.';
+        }
+        return false;
+    }
+
+    async function subscribeClientToPush() {
+        try {
+            if (btnSubscribePush) {
+                btnSubscribePush.disabled = true;
+                btnSubscribePush.textContent = 'Ativando...';
+            }
+
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            await navigator.serviceWorker.ready;
+
+            const existingSub = await registration.pushManager.getSubscription();
+            if (existingSub) {
+                checkClientPushStatus();
+                return;
+            }
+
+            const vapidPublicKey = document.querySelector('meta[name="vapid-pub-key"]')?.content;
+            if (!vapidPublicKey) throw new Error('Chave VAPID não encontrada na página.');
+
+            const convertedVapidKey = await urlBase64ToUint8Array(vapidPublicKey);
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedVapidKey
+            });
+
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            const response = await fetch('/push/subscribe', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf
+                }
+            });
+
+            if (response.ok) {
+                if(window.GlobalAlerts) window.GlobalAlerts.popup('Sucesso!', 'Notificações ativadas com sucesso neste aparelho.', 'success');
+                else alert('Notificações ativadas com sucesso!');
+                checkClientPushStatus();
+            } else {
+                throw new Error('Erro ao salvar inscrição.');
+            }
+        } catch (error) {
+            console.error('Push error:', error);
+            alert('Erro ao ativar notificações: ' + error.message);
+            if (btnSubscribePush) {
+                btnSubscribePush.disabled = false;
+                btnSubscribePush.textContent = 'Ativar Notificações';
+            }
+        }
+    }
+
+    if (btnSubscribePush) {
+        btnSubscribePush.addEventListener('click', subscribeClientToPush);
+        checkClientPushStatus();
+    }
+
 });

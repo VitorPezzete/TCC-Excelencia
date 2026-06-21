@@ -6,6 +6,7 @@
 <title>Excelência - Minha Conta</title>
 <link rel="icon" type="image/png" href="/images/logo.png">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="vapid-pub-key" content="{{ config('webpush.vapid.public_key') }}">
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
@@ -123,6 +124,28 @@
                     </div>
                 </div>
             </form>
+
+            <div class="mt-8 bg-[#261715] rounded-xl border border-gray-800 p-6 shadow-soft">
+                <h2 class="font-display text-2xl font-bold text-secondary mb-2 border-b border-gray-800 pb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined">notifications_active</span> Notificações
+                </h2>
+                <p class="text-sm text-gray-400 mb-6">Receba alertas em tempo real no seu celular ou computador quando o status do seu pedido mudar (ex: "Saiu para Entrega").</p>
+                
+                <div class="bg-background-dark border border-gray-700 rounded-lg p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-2xl">campaign</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white text-base">Notificações Push</p>
+                            <p class="text-xs text-gray-400" id="client-push-status">Verificando status...</p>
+                        </div>
+                    </div>
+                    <button id="btn-client-subscribe-push" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm whitespace-nowrap">
+                        Ativar Notificações
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div id="tab-enderecos" class="tab-content hidden">

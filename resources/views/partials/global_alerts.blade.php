@@ -153,9 +153,22 @@
             document.addEventListener('DOMContentLoaded', function() {
                 let lastKnownOrderIdGlobal = localStorage.getItem('lastKnownOrderIdGlobal') || 0;
                 
+                // Contexto global único para evitar limite do navegador
+                window._globalAudioCtx = window._globalAudioCtx || null;
+
+                function getAudioCtx() {
+                    if (!window._globalAudioCtx) {
+                        window._globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (window._globalAudioCtx.state === 'suspended') {
+                        window._globalAudioCtx.resume();
+                    }
+                    return window._globalAudioCtx;
+                }
+
                 function playToneGlobal(freq, type, duration, startTime, vol=2.0) {
                     try {
-                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const audioCtx = getAudioCtx();
                         const osc = audioCtx.createOscillator();
                         const gain = audioCtx.createGain();
                         osc.type = type;
