@@ -129,6 +129,10 @@
         },
 
         closePopup: function() {
+            if (window._alarmInterval) {
+                clearInterval(window._alarmInterval);
+                window._alarmInterval = null;
+            }
             const wrapper = document.getElementById('global-popup-container');
             const content = document.getElementById('global-popup-content');
             content.classList.remove('popup-open');
@@ -206,14 +210,17 @@
                                 lastKnownOrderIdGlobal = data.latest_id;
                                 localStorage.setItem('lastKnownOrderIdGlobal', lastKnownOrderIdGlobal);
                                 
+                                // Toca imediatamente e depois a cada 4 segundos (como despertador)
                                 playChimeNewOrderGlobal();
+                                if (window._alarmInterval) clearInterval(window._alarmInterval);
+                                window._alarmInterval = setInterval(playChimeNewOrderGlobal, 4000);
                                 
                                 window.GlobalAlerts.popup(
                                     'NOVO PEDIDO!',
                                     `Um novo pedido acabou de chegar na loja. Acesse o Dashboard para preparar.`,
                                     'success',
                                     [
-                                        { text: 'Fechar Alerta', color: 'bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800' },
+                                        { text: 'Silenciar', color: 'bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800' },
                                         { text: 'Ir para Dashboard', href: '/admin', color: 'bg-secondary text-primary hover:bg-[#c2884a]' }
                                     ]
                                 );
