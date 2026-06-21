@@ -1360,6 +1360,7 @@
     })();
     </script>
 
+    @include('partials.global_alerts')
 </body>
 
 </html>
