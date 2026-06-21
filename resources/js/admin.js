@@ -1153,10 +1153,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await res.json();
             
             if (lastKnownOrderId > 0 && data.latest_id > lastKnownOrderId) {
-                playChimeNewOrder();
-                showNewOrderAlert(data.latest_id);
                 if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Novo Pedido!', { body: 'Um novo pedido acabou de chegar na cozinha.', icon: '/favicon.ico' });
+                    new Notification('Novo Pedido!', { body: 'Um novo pedido acabou de chegar na loja.', icon: '/favicon.ico' });
                 }
             }
             lastKnownOrderId = Math.max(lastKnownOrderId, data.latest_id);

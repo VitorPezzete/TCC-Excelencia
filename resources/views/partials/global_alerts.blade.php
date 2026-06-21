@@ -196,21 +196,25 @@
                             // O admin.js atualizará a tabela
                         }
                         
-                        if (data.pedidos && data.pedidos.length > 0) {
-                            const newOrders = data.pedidos.filter(p => p.id > lastKnownOrderIdGlobal);
-                            if (newOrders.length > 0) {
-                                lastKnownOrderIdGlobal = Math.max(...data.pedidos.map(p => p.id));
+                        if (data.latest_id > 0) {
+                            if (lastKnownOrderIdGlobal == 0) {
+                                // Primeira carga, apenas atualiza o ID
+                                lastKnownOrderIdGlobal = data.latest_id;
+                                localStorage.setItem('lastKnownOrderIdGlobal', lastKnownOrderIdGlobal);
+                            } else if (data.latest_id > lastKnownOrderIdGlobal) {
+                                // Tem pedido novo!
+                                lastKnownOrderIdGlobal = data.latest_id;
                                 localStorage.setItem('lastKnownOrderIdGlobal', lastKnownOrderIdGlobal);
                                 
                                 playChimeNewOrderGlobal();
                                 
                                 window.GlobalAlerts.popup(
                                     'NOVO PEDIDO!',
-                                    `Você recebeu ${newOrders.length} novo(s) pedido(s). Acesse o Dashboard para preparar.`,
+                                    `Um novo pedido acabou de chegar na loja. Acesse o Dashboard para preparar.`,
                                     'success',
                                     [
                                         { text: 'Fechar Alerta', color: 'bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800' },
-                                        { text: 'Ir para Dashboard', href: '/admin/dashboard', color: 'bg-secondary text-primary hover:bg-[#c2884a]' }
+                                        { text: 'Ir para Dashboard', href: '/admin', color: 'bg-secondary text-primary hover:bg-[#c2884a]' }
                                     ]
                                 );
                             }

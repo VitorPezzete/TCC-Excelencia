@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-CUBafTVN.css",
+    "file": "assets/app-ByHxiMn5.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -36,7 +36,7 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-C1Vuxckt.js",
+    "file": "assets/admin-KxlIfZZH.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true
