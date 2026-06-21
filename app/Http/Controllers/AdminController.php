@@ -191,9 +191,17 @@ class AdminController extends Controller
     public function toggleStoreStatus()
     {
         try {
-            $setting = \App\Models\Setting::firstOrCreate(['key' => 'is_store_open'], ['value' => '1']);
-            $newValue = $setting->value === '1' ? '0' : '1';
-            $setting->update(['value' => $newValue]);
+            $current = \Illuminate\Support\Facades\DB::table('settings')
+                ->where('key', 'is_store_open')
+                ->value('value') ?? '1';
+
+            $newValue = $current === '1' ? '0' : '1';
+
+            \Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
+                ['key' => 'is_store_open'],
+                ['value' => $newValue, 'updated_at' => now()]
+            );
+
             return response()->json(['success' => true, 'is_open' => $newValue === '1']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
