@@ -1049,8 +1049,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function playWarningReminder() {
-        playTone(880, 'square', 0.2, 0, 1.0);
-        playTone(880, 'square', 0.2, 0.3, 1.0);
+        // Alerta urgente de pedido atrasado - volume máximo, 6 bipes
+        playTone(880, 'square', 0.25, 0.0,  3.0);
+        playTone(880, 'square', 0.25, 0.3,  3.0);
+        playTone(880, 'square', 0.25, 0.6,  3.0);
+        playTone(1100, 'square', 0.25, 0.9,  3.0);
+        playTone(1100, 'square', 0.25, 1.2,  3.0);
+        playTone(1100, 'square', 0.35, 1.5,  3.0);
     }
 
     if ('Notification' in window && Notification.permission === 'default') {

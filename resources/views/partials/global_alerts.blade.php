@@ -166,10 +166,23 @@
                 }
 
                 function playChimeNewOrderGlobal() {
-                    playToneGlobal(523.25, 'sine', 0.5, 0, 3.0);
-                    playToneGlobal(659.25, 'sine', 0.5, 0.1, 3.0);
-                    playToneGlobal(783.99, 'sine', 0.7, 0.2, 3.0);
-                    playToneGlobal(1046.50, 'sine', 1.0, 0.3, 3.0);
+                    // Sequência longa e forte — 4 toques repetidos em volume máximo
+                    const notes = [
+                        [523.25, 0.0],
+                        [659.25, 0.15],
+                        [783.99, 0.30],
+                        [1046.50, 0.45],
+                        [783.99, 0.70],
+                        [1046.50, 0.90],
+                        [1318.51, 1.10],
+                        [1046.50, 1.35],
+                        [1318.51, 1.55],
+                        [1567.98, 1.75],
+                    ];
+                    notes.forEach(([freq, start]) => {
+                        playToneGlobal(freq, 'sine', 0.5, start, 3.0);
+                        playToneGlobal(freq * 2, 'triangle', 0.3, start + 0.02, 2.0);
+                    });
                 }
 
                 setInterval(async () => {
