@@ -625,6 +625,48 @@ document.addEventListener('DOMContentLoaded', function() {
         transition-duration: 0.001ms !important;
     }
 </style>
+@include('footer')
+
+@if(session('success_checkout'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Atraso curto para garantir que o GlobalAlerts esteja carregado
+        setTimeout(() => {
+            if(window.GlobalAlerts) {
+                // Checar se já não está inscrito antes de mostrar o alerta
+                navigator.serviceWorker.getRegistration().then(function(reg) {
+                    if(reg) {
+                        reg.pushManager.getSubscription().then(function(sub) {
+                            if(!sub) {
+                                window.GlobalAlerts.popup(
+                                    'Pedido Confirmado!',
+                                    'Deseja receber notificações em tempo real no seu celular ou computador quando o seu pedido for enviado para entrega?',
+                                    'success',
+                                    [
+                                        { 
+                                            text: 'Sim, me avise!', 
+                                            color: 'bg-green-600 hover:bg-green-500 text-white', 
+                                            onClick: () => { 
+                                                if(typeof window.subscribeClientToPush === 'function') {
+                                                    window.subscribeClientToPush();
+                                                }
+                                            } 
+                                        },
+                                        { 
+                                            text: 'Agora não', 
+                                            color: 'bg-gray-600 hover:bg-gray-500 text-white' 
+                                        }
+                                    ]
+                                );
+                            }
+                        });
+                    }
+                });
+            }
+        }, 500);
+    });
+</script>
+@endif
 
 </body>
 </html>

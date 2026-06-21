@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return false;
     }
 
-    async function subscribeClientToPush() {
+    window.subscribeClientToPush = async function() {
         try {
             if (btnSubscribePush) {
                 btnSubscribePush.disabled = true;
@@ -521,10 +521,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnSubscribePush.textContent = 'Ativar Notificações';
             }
         }
-    }
+    };
 
     if (btnSubscribePush) {
-        btnSubscribePush.addEventListener('click', subscribeClientToPush);
+        btnSubscribePush.addEventListener('click', window.subscribeClientToPush);
         checkClientPushStatus();
     }
 
