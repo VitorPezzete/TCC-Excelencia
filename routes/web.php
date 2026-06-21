@@ -100,7 +100,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/pedidos', [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
     Route::get('/pedidos/api/ativos', [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
     Route::patch('/pedidos/{id}/status', [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
-    Route::post('/store-status', [\App\Http\Controllers\AdminController::class, 'toggleStoreStatus'])->name('store.status.toggle');
+    Route::get('/store-status', [\App\Http\Controllers\AdminController::class, 'getStoreStatus'])->name('store.status');
 
     // Produtos
     Route::get('/produtos', [\App\Http\Controllers\AdminController::class, 'produtos'])->name('produtos');
