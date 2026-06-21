@@ -174,6 +174,9 @@ class AdminController extends Controller
         // Mantido para compatibilidade com contadores no filtro de status
         $pedidosRecentes = $pedidosHoje_lista;
 
+        $is_open = \App\Models\Setting::where('key', 'is_store_open')->value('value') ?? '1';
+        $storeIsOpen = $is_open === '1';
+
         return view('admin.dashboard', compact(
             'totalFaturamentoMes', 'variacaoFat', 'ticketMedio', 'taxaCancelamento',
             'pedidosHoje', 'variacaoPedidos', 'pedidosAtrasados',
@@ -181,7 +184,7 @@ class AdminController extends Controller
             'faturamento7Dias', 'faturamento30Dias', 'pedidosPorStatus',
             'faturamentoPorCategoria', 'topProdutos', 'volumePedidos7Dias', 'volumePedidos30Dias',
             'mediaAvaliacoes', 'totalAvaliacoes', 'avaliacoesSemResposta',
-            'pedidosHoje_lista', 'pedidosHistorico', 'pedidosRecentes'
+            'pedidosHoje_lista', 'pedidosHistorico', 'pedidosRecentes', 'storeIsOpen'
         ));
     }
 
