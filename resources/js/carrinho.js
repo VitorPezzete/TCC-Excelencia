@@ -124,18 +124,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (selectAddress) {
-        selectAddress.addEventListener('change', function () {
+        selectAddress.addEventListener('change', async function () {
             calculateFrete();
             const opt     = this.options[this.selectedIndex];
             const preview = document.getElementById('address-preview');
             if (this.value && preview) {
                 document.getElementById('addr-nome').textContent    = opt.dataset.nome ?? '';
-                document.getElementById('addr-detalhe').textContent = [
+                
+                let detalheText = [
                     opt.dataset.numero ? `Nº ${opt.dataset.numero}` : '',
-                    opt.dataset.complemento ?? ''
+                    opt.dataset.complemento ?? '',
+                    opt.dataset.bairro ? `Bairro: ${opt.dataset.bairro}` : ''
                 ].filter(Boolean).join(' — ');
+
+                document.getElementById('addr-detalhe').textContent = detalheText;
                 document.getElementById('addr-cep').textContent = opt.dataset.cep ? `CEP: ${opt.dataset.cep}` : '';
                 preview.classList.remove('hidden');
+
+                if (opt.dataset.cep) {
+                    const cepLimpo = opt.dataset.cep.replace(/\D/g, '');
+                    if (cepLimpo.length === 8) {
+                        try {
+                            const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+                            const data = await res.json();
+                            if (!data.erro) {
+                                detalheText = [
+                                    data.logradouro || '',
+                                    opt.dataset.numero ? `Nº ${opt.dataset.numero}` : '',
+                                    opt.dataset.complemento ?? '',
+                                    (data.bairro || opt.dataset.bairro) ? `Bairro: ${data.bairro || opt.dataset.bairro}` : '',
+                                    data.localidade || ''
+                                ].filter(Boolean).join(' — ');
+                                document.getElementById('addr-detalhe').textContent = detalheText;
+                            }
+                        } catch(e) {}
+                    }
+                }
             } else if (preview) {
                 preview.classList.add('hidden');
             }

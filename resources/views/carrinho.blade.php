@@ -102,6 +102,7 @@
                             @foreach($addresses as $address)
                                 <option value="{{ $address->id }}"
                                     data-cep="{{ $address->cep }}"
+                                    data-bairro="{{ $address->bairro }}"
                                     data-nome="{{ $address->nome }}"
                                     data-numero="{{ $address->numero }}"
                                     data-complemento="{{ $address->complemento }}"
@@ -109,6 +110,7 @@
                                     {{ $address->nome }}
                                     @if($address->numero) — Nº {{ $address->numero }}@endif
                                     @if($address->complemento) ({{ $address->complemento }})@endif
+                                    @if($address->bairro) · Bairro: {{ $address->bairro }}@endif
                                     @if($address->cep) · CEP {{ $address->cep }}@endif
                                     {{ $address->padrao ? '★' : '' }}
                                 </option>
