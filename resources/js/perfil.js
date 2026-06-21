@@ -444,13 +444,15 @@ document.addEventListener('DOMContentLoaded', function () {
             if (subscription) {
                 if (pushStatusText) {
                     pushStatusText.textContent = 'Ativado neste dispositivo ✅';
-                    pushStatusText.classList.replace('text-gray-400', 'text-green-400');
+                    pushStatusText.classList.remove('text-gray-400', 'text-red-400');
+                    pushStatusText.classList.add('text-green-400');
                 }
                 if (btnSubscribePush) {
-                    btnSubscribePush.textContent = 'Notificações Ativadas';
-                    btnSubscribePush.classList.replace('bg-blue-600', 'bg-green-600');
-                    btnSubscribePush.classList.replace('hover:bg-blue-500', 'hover:bg-green-500');
-                    btnSubscribePush.disabled = true;
+                    btnSubscribePush.textContent = 'Desativar Notificações';
+                    btnSubscribePush.classList.remove('bg-blue-600', 'hover:bg-blue-500', 'bg-green-600', 'hover:bg-green-500');
+                    btnSubscribePush.classList.add('bg-red-600', 'hover:bg-red-500');
+                    btnSubscribePush.disabled = false;
+                    btnSubscribePush.onclick = unsubscribeClientFromPush;
                 }
                 return true;
             }
@@ -459,11 +461,24 @@ document.addEventListener('DOMContentLoaded', function () {
         if (Notification.permission === 'denied') {
             if (pushStatusText) {
                 pushStatusText.textContent = 'Bloqueado. Permita as notificações nas configurações do navegador.';
-                pushStatusText.classList.replace('text-gray-400', 'text-red-400');
+                pushStatusText.classList.remove('text-gray-400', 'text-green-400');
+                pushStatusText.classList.add('text-red-400');
             }
             if (btnSubscribePush) btnSubscribePush.style.display = 'none';
         } else {
-            if (pushStatusText) pushStatusText.textContent = 'Desativado.';
+            if (pushStatusText) {
+                pushStatusText.textContent = 'Desativado.';
+                pushStatusText.classList.remove('text-green-400', 'text-red-400');
+                pushStatusText.classList.add('text-gray-400');
+            }
+            if (btnSubscribePush) {
+                btnSubscribePush.textContent = 'Ativar Notificações';
+                btnSubscribePush.classList.remove('bg-red-600', 'hover:bg-red-500', 'bg-green-600', 'hover:bg-green-500');
+                btnSubscribePush.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                btnSubscribePush.disabled = false;
+                btnSubscribePush.style.display = 'block';
+                btnSubscribePush.onclick = window.subscribeClientToPush;
+            }
         }
         return false;
     }
@@ -508,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (response.ok) {
                 if(window.GlobalAlerts) window.GlobalAlerts.popup('Sucesso!', 'Notificações ativadas com sucesso neste aparelho.', 'success');
-                else alert('Notificações ativadas com sucesso!');
+                else alert( 'Notificações ativadas com sucesso!');
                 checkClientPushStatus();
             } else {
                 throw new Error('Erro ao salvar inscrição.');
@@ -516,15 +531,41 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Push error:', error);
             alert('Erro ao ativar notificações: ' + error.message);
-            if (btnSubscribePush) {
-                btnSubscribePush.disabled = false;
-                btnSubscribePush.textContent = 'Ativar Notificações';
-            }
+            checkClientPushStatus();
         }
     };
 
+    async function unsubscribeClientFromPush() {
+        try {
+            if (btnSubscribePush) {
+                btnSubscribePush.disabled = true;
+                btnSubscribePush.textContent = 'Desativando...';
+            }
+
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    
+                    // Opcional: Avisar o backend para remover a inscrição do banco
+                    // const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                    // await fetch('/push/unsubscribe', { method: 'POST', body: JSON.stringify({ endpoint: subscription.endpoint }), headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf } });
+                }
+            }
+
+            if(window.GlobalAlerts) window.GlobalAlerts.popup('Desativado', 'Notificações desativadas com sucesso.', 'info');
+            else alert('Notificações desativadas.');
+            
+            checkClientPushStatus();
+        } catch (error) {
+            console.error('Unsubscribe error:', error);
+            alert('Erro ao desativar notificações.');
+            checkClientPushStatus();
+        }
+    }
+
     if (btnSubscribePush) {
-        btnSubscribePush.addEventListener('click', window.subscribeClientToPush);
         checkClientPushStatus();
     }
 
