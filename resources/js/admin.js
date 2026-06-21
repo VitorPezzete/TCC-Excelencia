@@ -64,10 +64,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const sections  = document.querySelectorAll('.section');
     const sideLinks = document.querySelectorAll('.sidebar-link[data-section]');
     const PAGE_META = {
-        overview:   { title: 'Visão Geral',  sub: 'Resumo geral do seu negócio' },
-        pedidos:    { title: 'Pedidos',       sub: 'Pedidos ativos de hoje' },
-        produtos:   { title: 'Produtos',      sub: 'Cadastre e edite seus produtos' },
-        avaliacoes: { title: 'Avaliações',    sub: 'Feedback dos seus clientes' },
+        overview:       { title: 'Visão Geral',         sub: 'Resumo geral do seu negócio' },
+        pedidos:        { title: 'Pedidos',              sub: 'Pedidos ativos de hoje' },
+        produtos:       { title: 'Produtos',             sub: 'Cadastre e edite seus produtos' },
+        avaliacoes:     { title: 'Avaliações',          sub: 'Feedback dos seus clientes' },
+        entrega:        { title: 'Zonas de Entrega',     sub: 'Taxas e áreas de entrega' },
+        configuracoes:  { title: 'Configurações',       sub: 'Horário de funcionamento da loja' },
     };
 
     function activateSection(name) {
@@ -1025,9 +1027,90 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // ── Configurações de Horário ────────────────────────────────────────────
+    const formSchedule = document.getElementById('form-schedule');
+    if (formSchedule) {
+        // Toggle visual dos day-pills
+        formSchedule.querySelectorAll('.day-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const pill = this.nextElementSibling;
+                if (this.checked) {
+                    pill.classList.add('bg-secondary/15', 'border-secondary', 'text-secondary');
+                    pill.classList.remove('bg-white/[0.03]', 'border-white/10', 'text-gray-600');
+                } else {
+                    pill.classList.remove('bg-secondary/15', 'border-secondary', 'text-secondary');
+                    pill.classList.add('bg-white/[0.03]', 'border-white/10', 'text-gray-600');
+                }
+            });
+        });
+
+        formSchedule.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-schedule');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Salvando...';
+
+            const days = [...formSchedule.querySelectorAll('.day-checkbox:checked')].map(c => parseInt(c.value));
+            if (days.length === 0) {
+                showToast('Selecione pelo menos um dia.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Salvar Horário';
+                return;
+            }
+
+            try {
+                const res = await fetch('/admin/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        days,
+                        open:  document.getElementById('cfg-open').value,
+                        close: document.getElementById('cfg-close').value,
+                    }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast('Horário salvo com sucesso!');
+                    // Atualiza badge de status
+                    const badge = document.getElementById('cfg-status-badge');
+                    const statusText = document.getElementById('cfg-status-text');
+                    const hoursLabel = document.getElementById('cfg-hours-label');
+                    const sidebarStatus = document.getElementById('sidebar-store-text');
+                    const sidebarDot    = document.getElementById('sidebar-store-dot');
+                    if (data.is_open) {
+                        badge?.classList.replace('bg-red-500/10','bg-green-500/10');
+                        badge?.classList.replace('border-red-500/30','border-green-500/30');
+                        badge?.classList.replace('text-red-400','text-green-400');
+                        if (statusText) statusText.textContent = 'Loja aberta agora';
+                        sidebarDot?.classList.replace('bg-red-500','bg-green-400');
+                        if (sidebarStatus) sidebarStatus.textContent = 'Aberta agora';
+                        sidebarStatus?.classList.replace('text-red-400','text-green-400');
+                    } else {
+                        badge?.classList.replace('bg-green-500/10','bg-red-500/10');
+                        badge?.classList.replace('border-green-500/30','border-red-500/30');
+                        badge?.classList.replace('text-green-400','text-red-400');
+                        if (statusText) statusText.textContent = 'Loja fechada agora';
+                        sidebarDot?.classList.replace('bg-green-400','bg-red-500');
+                        if (sidebarStatus) sidebarStatus.textContent = 'Fechada agora';
+                        sidebarStatus?.classList.replace('text-green-400','text-red-400');
+                    }
+                    if (hoursLabel) hoursLabel.textContent = data.label;
+                } else {
+                    showToast(data.message || 'Erro ao salvar.', 'error');
+                }
+            } catch (err) {
+                showToast('Erro de conexão.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Salvar Horário';
+            }
+        });
+    }
+
+    // ── Polling de pedidos ────────────────────────────────────────────────────
     let lastKnownOrderId = 0;
     let pollCounter = 0;
-    
+
     function playTone(freq, type, duration, startTime, vol=0.5) {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();

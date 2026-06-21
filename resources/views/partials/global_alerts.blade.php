@@ -221,3 +221,49 @@
         </script>
     @endif
 @endauth
+
+{{-- ═══ Polling de status da loja (todas as páginas, a cada 30s) ═══ --}}
+<script>
+    (function() {
+        // Guarda o estado inicial enviado pelo servidor (evita falso alerta na 1ª checagem)
+        let _storeWasOpen = {{ $storeIsOpen ? 'true' : 'false' }};
+
+        async function checkStoreStatus() {
+            try {
+                const res = await fetch('/api/store-status', { cache: 'no-store' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const isOpen = !!data.is_open;
+
+                if (isOpen !== _storeWasOpen) {
+                    _storeWasOpen = isOpen;
+                    // Notifica o usuário
+                    if (typeof window.GlobalAlerts !== 'undefined') {
+                        if (isOpen) {
+                            window.GlobalAlerts.toast('A loja está aberta agora! Pedidos aceitos.', 'success', 6000);
+                        } else {
+                            window.GlobalAlerts.toast('A loja acabou de fechar. Pedidos suspensos.', 'warning', 8000);
+                        }
+                    }
+                    // Atualiza body para CSS poder reagir
+                    document.body.classList.toggle('store-closed', !isOpen);
+                    // Atualiza botões de checkout visiveis
+                    document.querySelectorAll('[data-store-gate]').forEach(el => {
+                        el.disabled = !isOpen;
+                        el.classList.toggle('opacity-50', !isOpen);
+                        el.classList.toggle('cursor-not-allowed', !isOpen);
+                    });
+                    // Atualiza eventuais indicadores de status na page
+                    document.querySelectorAll('[data-store-status-label]').forEach(el => {
+                        el.textContent = isOpen ? 'Aberta' : 'Fechada';
+                    });
+                }
+            } catch(e) {}
+        }
+
+        // Primeira checagem após 15s (para não interferir com o carregamento)
+        setTimeout(checkStoreStatus, 15000);
+        // Polling a cada 30s
+        setInterval(checkStoreStatus, 30000);
+    })();
+</script>

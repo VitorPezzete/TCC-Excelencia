@@ -265,6 +265,11 @@
             <button class="sidebar-link" data-section="entrega">
                 <span class="material-symbols-outlined text-[19px]">local_shipping</span> Zonas de Entrega
             </button>
+
+            <p class="px-4 pt-4 pb-1.5 text-[9px] font-bold text-gray-700 uppercase tracking-widest border-t border-white/[0.04]">Configurações</p>
+            <button class="sidebar-link" data-section="configuracoes">
+                <span class="material-symbols-outlined text-[19px]">schedule</span> Horário
+            </button>
         </nav>
 
         {{-- User box --}}
@@ -272,11 +277,11 @@
             <div class="flex items-center justify-between bg-white/[0.02] border border-white/[0.04] rounded-lg px-3 py-2">
                 <div class="flex flex-col gap-0.5 min-w-0">
                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Status da Loja</span>
-                    <span class="text-[11px] font-bold {{ $storeIsOpen ? 'text-green-400' : 'text-red-400' }}">
-                        <span class="inline-block w-1.5 h-1.5 rounded-full {{ $storeIsOpen ? 'bg-green-400' : 'bg-red-500' }} mr-1"></span>
+                    <span class="text-[11px] font-bold {{ $storeIsOpen ? 'text-green-400' : 'text-red-400' }}" id="sidebar-store-text">
+                        <span id="sidebar-store-dot" class="inline-block w-1.5 h-1.5 rounded-full {{ $storeIsOpen ? 'bg-green-400' : 'bg-red-500' }} mr-1"></span>
                         {{ $storeIsOpen ? 'Aberta agora' : 'Fechada agora' }}
                     </span>
-                    <span class="text-[9px] text-gray-700">Seg–Sáb 07:00–19:00</span>
+                    <span class="text-[9px] text-gray-700" id="sidebar-store-label">{{ \App\Helpers\StoreHelper::hoursLabel() }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -836,6 +841,78 @@
                         <p><span class="text-gray-300 font-bold">Como funciona:</span> Ao fazer um pedido, o sistema identifica o bairro do endereço de entrega e busca a zona correspondente.</p>
                         <p>Se o bairro não estiver em nenhuma zona, o pedido será bloqueado com uma mensagem ao cliente.</p>
                         <p><span class="text-secondary font-bold">Frete Grátis:</span> Se o subtotal atingir o valor mínimo configurado na zona, a taxa será automaticamente zerada.</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ═══════════ CONFIGURAÇÕES (Horário) ═══════════ --}}
+            <div id="section-configuracoes" class="section animate-fade-up">
+                <div class="max-w-xl">
+                    <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] p-5 md:p-6 space-y-6">
+                        <div>
+                            <h2 class="font-bold text-white text-base">Horário de Funcionamento</h2>
+                            <p class="text-[11px] text-gray-600 mt-0.5">Defina os dias e horários em que a loja aceita pedidos. As alterações têm efeito imediato em todas as páginas.</p>
+                        </div>
+
+                        {{-- Status atual --}}
+                        <div id="cfg-status-badge" class="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold
+                            {{ $storeIsOpen ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400' }}">
+                            <span class="w-2 h-2 rounded-full {{ $storeIsOpen ? 'bg-green-400' : 'bg-red-500' }}"></span>
+                            <span id="cfg-status-text">{{ $storeIsOpen ? 'Loja aberta agora' : 'Loja fechada agora' }}</span>
+                            <span class="ml-auto text-[10px] font-normal text-gray-500" id="cfg-hours-label">{{ \App\Helpers\StoreHelper::hoursLabel() }}</span>
+                        </div>
+
+                        <form id="form-schedule" class="space-y-5">
+                            @csrf
+                            {{-- Dias da semana --}}
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Dias de Atendimento</p>
+                                @php
+                                    $schedule = \App\Helpers\StoreHelper::getSchedule();
+                                    $dayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+                                @endphp
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($dayNames as $idx => $day)
+                                        <label class="day-toggle-label cursor-pointer">
+                                            <input type="checkbox" name="days[]" value="{{ $idx }}"
+                                                class="sr-only day-checkbox"
+                                                {{ in_array($idx, $schedule['days']) ? 'checked' : '' }}>
+                                            <span class="day-pill inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold border transition-all select-none
+                                                {{ in_array($idx, $schedule['days']) ? 'bg-secondary/15 border-secondary text-secondary' : 'bg-white/[0.03] border-white/10 text-gray-600' }}">
+                                                {{ $day }}
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            {{-- Horários --}}
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Abertura</label>
+                                    <input type="time" name="open" id="cfg-open"
+                                        value="{{ $schedule['open'] }}"
+                                        class="w-full bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-secondary/40">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Fechamento</label>
+                                    <input type="time" name="close" id="cfg-close"
+                                        value="{{ $schedule['close'] }}"
+                                        class="w-full bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-secondary/40">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btn-salvar-schedule"
+                                class="w-full flex items-center justify-center gap-2 px-5 py-3 bg-secondary text-primary text-sm font-bold rounded-xl hover:bg-[#c2884a] transition-all shadow-md shadow-secondary/10">
+                                <span class="material-symbols-outlined text-[18px]">save</span>
+                                Salvar Horário
+                            </button>
+                        </form>
+
+                        <div class="bg-secondary/5 border border-secondary/15 rounded-xl p-4 flex items-start gap-3">
+                            <span class="material-symbols-outlined text-secondary text-[18px] mt-0.5 shrink-0">info</span>
+                            <p class="text-[11px] text-gray-500">Ao salvar, o status da loja é atualizado imediatamente. Clientes em outras páginas verão o novo status em até 30 segundos (polling automático).</p>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -195,6 +195,49 @@ class AdminController extends Controller
         ]);
     }
 
+    public function getSchedule()
+    {
+        return response()->json(\App\Helpers\StoreHelper::getSchedule());
+    }
+
+    public function updateSchedule(Request $request)
+    {
+        $request->validate([
+            'days'  => 'required|array|min:1',
+            'days.*'=> 'integer|between:0,6',
+            'open'  => ['required', 'regex:/^\d{2}:\d{2}$/'],
+            'close' => ['required', 'regex:/^\d{2}:\d{2}$/'],
+        ]);
+
+        $schedule = [
+            'days'  => array_map('intval', $request->days),
+            'open'  => $request->open,
+            'close' => $request->close,
+        ];
+
+        \Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
+            ['key' => 'store_schedule'],
+            ['value' => json_encode($schedule), 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        return response()->json([
+            'success'  => true,
+            'schedule' => $schedule,
+            'is_open'  => \App\Helpers\StoreHelper::isOpen(),
+            'label'    => \App\Helpers\StoreHelper::hoursLabel(),
+        ]);
+    }
+
+    public function publicStoreStatus()
+    {
+        return response()->json([
+            'is_open'  => \App\Helpers\StoreHelper::isOpen(),
+            'schedule' => \App\Helpers\StoreHelper::getSchedule(),
+            'label'    => \App\Helpers\StoreHelper::hoursLabel(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+
     public function apiAtivos()
     {
         $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])

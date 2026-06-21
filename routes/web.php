@@ -100,7 +100,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/pedidos', [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
     Route::get('/pedidos/api/ativos', [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
     Route::patch('/pedidos/{id}/status', [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
-    Route::get('/store-status', [\App\Http\Controllers\AdminController::class, 'getStoreStatus'])->name('store.status');
+    Route::get('/store-status',               [\App\Http\Controllers\AdminController::class, 'getStoreStatus'])->name('store.status');
+    Route::get('/schedule',                   [\App\Http\Controllers\AdminController::class, 'getSchedule'])->name('schedule.get');
+    Route::post('/schedule',                  [\App\Http\Controllers\AdminController::class, 'updateSchedule'])->name('schedule.update');
 
     // Produtos
     Route::get('/produtos', [\App\Http\Controllers\AdminController::class, 'produtos'])->name('produtos');
@@ -132,3 +134,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // Webhook do Mercado Pago (público — chamado pelo servidor do MP, não pelo usuário)
 Route::post('/webhook/mercadopago', [PagamentoController::class, 'webhook'])->name('webhook.mercadopago');
+
+// API pública — status atual da loja (polling por todas as páginas)
+Route::get('/api/store-status', [\App\Http\Controllers\AdminController::class, 'publicStoreStatus'])->name('api.store.status');
