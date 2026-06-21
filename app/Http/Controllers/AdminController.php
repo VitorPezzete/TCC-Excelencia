@@ -479,6 +479,40 @@ class AdminController extends Controller
     public function detalhesPedido($id)
     {
         $pedido = Pedido::with(['user', 'itens.produto', 'pagamento', 'endereco'])->findOrFail($id);
+        
+        $enderecoFormatado = '—';
+        if ($pedido->endereco) {
+            $bairro = $pedido->endereco->bairro;
+            $logradouro = null;
+            $cidade = null;
+
+            if (!empty($pedido->endereco->cep)) {
+                $cepLimpo = preg_replace('/\D/', '', $pedido->endereco->cep);
+                try {
+                    $resposta = \Illuminate\Support\Facades\Http::timeout(3)
+                        ->get("https://viacep.com.br/ws/{$cepLimpo}/json/");
+                    if ($resposta->ok()) {
+                        $dados = $resposta->json();
+                        $logradouro = $dados['logradouro'] ?? null;
+                        $cidade = $dados['localidade'] ?? null;
+                        $bairro = $bairro ?: ($dados['bairro'] ?? null);
+                    }
+                } catch (\Exception $e) {}
+            }
+
+            $partes = array_filter([
+                $logradouro ? $logradouro : null,
+                $pedido->endereco->numero ? 'Nº ' . $pedido->endereco->numero : 'S/N',
+                $pedido->endereco->complemento ?? null,
+                $bairro ? "Bairro: $bairro" : null,
+                $cidade ? $cidade : null,
+                $pedido->endereco->cep ? 'CEP: ' . $pedido->endereco->cep : null,
+            ]);
+
+            $enderecoStr = implode(', ', $partes);
+            $enderecoFormatado = $pedido->endereco->nome ? "{$pedido->endereco->nome} - {$enderecoStr}" : $enderecoStr;
+        }
+
         return response()->json([
             'id'         => $pedido->id,
             'status'     => $pedido->status,
@@ -492,14 +526,7 @@ class AdminController extends Controller
             'email'      => $pedido->user?->email ?? '—',
             'pagamento'  => $pedido->pagamento?->metodo ?? '—',
             'observacoes'=> $pedido->observacoes ?? '',
-            'endereco'   => $pedido->endereco
-                ? implode(', ', array_filter([
-                    $pedido->endereco->nome ?? null,
-                    $pedido->endereco->numero ? 'Nº ' . $pedido->endereco->numero : null,
-                    $pedido->endereco->complemento ?? null,
-                    $pedido->endereco->cep ? 'CEP: ' . $pedido->endereco->cep : null,
-                  ]))
-                : '—',
+            'endereco'   => $enderecoFormatado,
             'itens'      => $pedido->itens->map(fn($i) => [
                 'nome'       => $i->produto?->nome ?? '—',
                 'quantidade' => $i->quantidade,
