@@ -384,10 +384,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (hasChanged) {
+                // Web Push já lida com as notificações do sistema operacional.
+                // Apenas tocamos o som e exibimos o alerta interno.
                 playChimeStatusChange();
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Status do Pedido Atualizado!', { body: msgAlerta, icon: '/favicon.ico' });
-                }
                 
                 if (window.GlobalAlerts) {
                     window.GlobalAlerts.popup(
@@ -443,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const subscription = await registration.pushManager.getSubscription();
             if (subscription) {
                 if (pushStatusText) {
-                    pushStatusText.textContent = 'Ativado neste dispositivo ✅';
+                    pushStatusText.textContent = 'Ativado neste dispositivo';
                     pushStatusText.classList.remove('text-gray-400', 'text-red-400');
                     pushStatusText.classList.add('text-green-400');
                 }
