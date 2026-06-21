@@ -174,8 +174,7 @@ class AdminController extends Controller
         // Mantido para compatibilidade com contadores no filtro de status
         $pedidosRecentes = $pedidosHoje_lista;
 
-        $is_open = \App\Models\Setting::where('key', 'is_store_open')->value('value') ?? '1';
-        $storeIsOpen = $is_open === '1';
+        $storeIsOpen = \App\Helpers\StoreHelper::isOpen();
 
         return view('admin.dashboard', compact(
             'totalFaturamentoMes', 'variacaoFat', 'ticketMedio', 'taxaCancelamento',
@@ -188,24 +187,12 @@ class AdminController extends Controller
         ));
     }
 
-    public function toggleStoreStatus()
+    public function getStoreStatus()
     {
-        try {
-            $current = \Illuminate\Support\Facades\DB::table('settings')
-                ->where('key', 'is_store_open')
-                ->value('value') ?? '1';
-
-            $newValue = $current === '1' ? '0' : '1';
-
-            \Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
-                ['key' => 'is_store_open'],
-                ['value' => $newValue, 'updated_at' => now()]
-            );
-
-            return response()->json(['success' => true, 'is_open' => $newValue === '1']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
+        return response()->json([
+            'is_open' => \App\Helpers\StoreHelper::isOpen(),
+            'hours'   => \App\Helpers\StoreHelper::hoursLabel(),
+        ]);
     }
 
     public function apiAtivos()

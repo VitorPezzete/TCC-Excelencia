@@ -270,12 +270,14 @@
         {{-- User box --}}
         <div class="p-4 border-t border-white/[0.04] space-y-3">
             <div class="flex items-center justify-between bg-white/[0.02] border border-white/[0.04] rounded-lg px-3 py-2">
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Loja Aberta</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="toggle-store-status" class="sr-only" {{ (\App\Models\Setting::where('key', 'is_store_open')->value('value') ?? '1') === '1' ? 'checked' : '' }}>
-                    <span class="toggle-track"></span>
-                    <span class="toggle-thumb"></span>
-                </label>
+                <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Status da Loja</span>
+                    <span class="text-[11px] font-bold {{ $storeIsOpen ? 'text-green-400' : 'text-red-400' }}">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full {{ $storeIsOpen ? 'bg-green-400' : 'bg-red-500' }} mr-1"></span>
+                        {{ $storeIsOpen ? 'Aberta agora' : 'Fechada agora' }}
+                    </span>
+                    <span class="text-[9px] text-gray-700">Seg–Sáb 07:00–19:00</span>
+                </div>
             </div>
             <div class="flex items-center gap-3">
                 <div

@@ -31,9 +31,10 @@ Route::get('/cardapio', [CardapioController::class, 'index'])->name('cardapio');
 Route::get('/avaliacoes', function () {
     $nota = request('nota');
     $query = \App\Models\Avaliacao::with(['user', 'produto'])->latest();
-    if ($nota) $query->where('nota', $nota);
-    $avaliacoes     = $query->paginate(12);
-    $mediaGeral     = \App\Models\Avaliacao::avg('nota') ?? 0;
+    if ($nota)
+        $query->where('nota', $nota);
+    $avaliacoes = $query->paginate(12);
+    $mediaGeral = \App\Models\Avaliacao::avg('nota') ?? 0;
     $totalAvaliacoes = \App\Models\Avaliacao::count();
     return view('avaliacoes', compact('avaliacoes', 'mediaGeral', 'totalAvaliacoes'));
 })->name('avaliacoes.publicas');
@@ -44,8 +45,8 @@ Route::get('/login', function () {
 })->name('login')->middleware('guest');
 
 Route::post('/cadastro', [AuthController::class, 'register'])->name('register')->middleware('guest');
-Route::post('/login',    [AuthController::class, 'login'])->name('login.post')->middleware('guest');
-Route::post('/logout',   [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('guest');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Rotas de Recuperação de Senha
 Route::get('forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showLinkRequestForm'])->name('password.request')->middleware('guest');
@@ -69,7 +70,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/carrinho', [CarrinhoController::class, 'store'])->name('carrinho.store');
     Route::put('/carrinho/{id}', [CarrinhoController::class, 'update'])->name('carrinho.update');
     Route::delete('/carrinho/{id}', [CarrinhoController::class, 'destroy'])->name('carrinho.destroy');
-    
+
     // Rota de Checkout
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
 
@@ -93,40 +94,40 @@ Route::middleware('auth')->group(function () {
 
 // Painel Administrativo
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/',  [\App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    Route::get('/', [\App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
 
     // Pedidos
-    Route::get('/pedidos',                    [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
-    Route::get('/pedidos/api/ativos',         [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
-    Route::patch('/pedidos/{id}/status',      [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
-    Route::post('/store-status',              [\App\Http\Controllers\AdminController::class, 'toggleStoreStatus'])->name('store.status.toggle');
+    Route::get('/pedidos', [\App\Http\Controllers\AdminController::class, 'pedidos'])->name('pedidos');
+    Route::get('/pedidos/api/ativos', [\App\Http\Controllers\AdminController::class, 'apiAtivos'])->name('pedidos.api.ativos');
+    Route::patch('/pedidos/{id}/status', [\App\Http\Controllers\AdminController::class, 'updateStatusPedido'])->name('pedidos.status');
+    Route::post('/store-status', [\App\Http\Controllers\AdminController::class, 'toggleStoreStatus'])->name('store.status.toggle');
 
     // Produtos
-    Route::get('/produtos',                          [\App\Http\Controllers\AdminController::class, 'produtos'])->name('produtos');
-    Route::post('/produtos',                         [\App\Http\Controllers\AdminController::class, 'storeProduto'])->name('produtos.store');
-    Route::put('/produtos/{id}',                     [\App\Http\Controllers\AdminController::class, 'updateProduto'])->name('produtos.update');
-    Route::patch('/produtos/{id}/toggle',            [\App\Http\Controllers\AdminController::class, 'toggleProduto'])->name('produtos.toggle');
-    Route::patch('/produtos/{id}/toggle-destaque',   [\App\Http\Controllers\AdminController::class, 'toggleDestaque'])->name('produtos.toggleDestaque');
-    Route::delete('/produtos/{id}',                  [\App\Http\Controllers\AdminController::class, 'destroyProduto'])->name('produtos.destroy');
+    Route::get('/produtos', [\App\Http\Controllers\AdminController::class, 'produtos'])->name('produtos');
+    Route::post('/produtos', [\App\Http\Controllers\AdminController::class, 'storeProduto'])->name('produtos.store');
+    Route::put('/produtos/{id}', [\App\Http\Controllers\AdminController::class, 'updateProduto'])->name('produtos.update');
+    Route::patch('/produtos/{id}/toggle', [\App\Http\Controllers\AdminController::class, 'toggleProduto'])->name('produtos.toggle');
+    Route::patch('/produtos/{id}/toggle-destaque', [\App\Http\Controllers\AdminController::class, 'toggleDestaque'])->name('produtos.toggleDestaque');
+    Route::delete('/produtos/{id}', [\App\Http\Controllers\AdminController::class, 'destroyProduto'])->name('produtos.destroy');
 
     // Categorias
-    Route::get('/categorias',     [\App\Http\Controllers\AdminController::class, 'listCategorias'])->name('categorias.list');
-    Route::post('/categorias',    [\App\Http\Controllers\AdminController::class, 'storeCategoria'])->name('categorias.store');
+    Route::get('/categorias', [\App\Http\Controllers\AdminController::class, 'listCategorias'])->name('categorias.list');
+    Route::post('/categorias', [\App\Http\Controllers\AdminController::class, 'storeCategoria'])->name('categorias.store');
     Route::delete('/categorias/{id}', [\App\Http\Controllers\AdminController::class, 'destroyCategoria'])->name('categorias.destroy');
 
     // Avaliações
-    Route::get('/avaliacoes',                        [\App\Http\Controllers\AdminController::class, 'avaliacoes'])->name('avaliacoes');
-    Route::patch('/avaliacoes/{id}/responder',       [\App\Http\Controllers\AdminController::class, 'responderAvaliacao'])->name('avaliacoes.responder');
+    Route::get('/avaliacoes', [\App\Http\Controllers\AdminController::class, 'avaliacoes'])->name('avaliacoes');
+    Route::patch('/avaliacoes/{id}/responder', [\App\Http\Controllers\AdminController::class, 'responderAvaliacao'])->name('avaliacoes.responder');
 
     // Detalhes de pedido
     Route::get('/pedidos/{id}/detalhes', [\App\Http\Controllers\AdminController::class, 'detalhesPedido'])->name('pedidos.detalhes');
 
     // Zonas de Entrega
-    Route::get('/zonas-entrega',           [\App\Http\Controllers\AdminController::class, 'indexZonas'])->name('zonas.index');
-    Route::post('/zonas-entrega',          [\App\Http\Controllers\AdminController::class, 'storeZona'])->name('zonas.store');
-    Route::put('/zonas-entrega/{id}',      [\App\Http\Controllers\AdminController::class, 'updateZona'])->name('zonas.update');
-    Route::delete('/zonas-entrega/{id}',   [\App\Http\Controllers\AdminController::class, 'destroyZona'])->name('zonas.destroy');
-    Route::post('/calcular-frete',         [\App\Http\Controllers\AdminController::class, 'calcularFrete'])->name('frete.calcular');
+    Route::get('/zonas-entrega', [\App\Http\Controllers\AdminController::class, 'indexZonas'])->name('zonas.index');
+    Route::post('/zonas-entrega', [\App\Http\Controllers\AdminController::class, 'storeZona'])->name('zonas.store');
+    Route::put('/zonas-entrega/{id}', [\App\Http\Controllers\AdminController::class, 'updateZona'])->name('zonas.update');
+    Route::delete('/zonas-entrega/{id}', [\App\Http\Controllers\AdminController::class, 'destroyZona'])->name('zonas.destroy');
+    Route::post('/calcular-frete', [\App\Http\Controllers\AdminController::class, 'calcularFrete'])->name('frete.calcular');
 });
 
 // Webhook do Mercado Pago (público — chamado pelo servidor do MP, não pelo usuário)

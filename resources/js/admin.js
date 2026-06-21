@@ -29,29 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 
-    // Toggle Store Status
-    const toggleStore = document.getElementById('toggle-store-status');
-    if (toggleStore) {
-        toggleStore.addEventListener('change', async function() {
-            try {
-                const res = await fetch('/admin/store-status', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await res.json();
-                if (!data.success) {
-                    this.checked = !this.checked;
-                    alert('Erro ao alterar status da loja.');
-                }
-            } catch (e) {
-                this.checked = !this.checked;
-                alert('Erro de conexão ao alterar status.');
-            }
-        });
-    }
 
     // Modal de Confirmação Customizado
     const modalConfirm    = document.getElementById('modal-confirm');
