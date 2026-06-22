@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'Accept': 'application/json' }
                 });
                 const data = await res.json();
-                if (data.status === 'confirmado' || data.status === 'preparando' || data.status === 'saiu_para_entrega' || data.status === 'entregue') {
+                if (data.status === 'pendente' || data.status === 'confirmado' || data.status === 'preparando' || data.status === 'saiu_para_entrega' || data.status === 'entregue') {
                     clearInterval(pixStatusInterval);
                     if (countdownTimer) clearInterval(countdownTimer);
                     
