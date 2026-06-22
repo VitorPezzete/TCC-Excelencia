@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('link-to-register').addEventListener('click', showRegister);
     document.getElementById('link-to-login').addEventListener('click', showLogin);
 
+    // Auto-abre a aba de cadastro se houver erros de validação do formulário de cadastro
+    if (document.body.dataset.showRegister === '1') {
+        showRegister();
+    }
+
     const toggleBtn = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
     const toggleIcon = toggleBtn.querySelector('.material-icons');

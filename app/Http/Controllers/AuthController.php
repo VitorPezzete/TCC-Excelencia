@@ -12,10 +12,19 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string',
+            'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
-            'phone'    => 'required',
+            'phone'    => 'required|string',
             'password' => 'required|min:8',
+        ], [
+            'name.required'     => 'O nome é obrigatório.',
+            'name.string'       => 'O nome deve ser um texto.',
+            'email.required'    => 'O e-mail é obrigatório.',
+            'email.email'       => 'Informe um e-mail válido.',
+            'email.unique'      => 'Este e-mail já está cadastrado.',
+            'phone.required'    => 'O telefone é obrigatório.',
+            'password.required' => 'A senha é obrigatória.',
+            'password.min'      => 'A senha deve ter no mínimo 8 caracteres.',
         ]);
 
         $user = User::create([

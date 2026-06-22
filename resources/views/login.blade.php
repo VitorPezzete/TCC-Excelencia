@@ -30,7 +30,8 @@
     .form-input::placeholder { color: rgba(253, 241, 228, 0.5); }
 </style>
 </head>
-<body class="font-body bg-background-dark text-text-light min-h-screen flex flex-col relative overflow-x-hidden">
+<body class="font-body bg-background-dark text-text-light min-h-screen flex flex-col relative overflow-x-hidden"
+    data-show-register="{{ $errors->has('name') || $errors->has('email') || $errors->has('phone') ? '1' : '0' }}">
 
 <nav class="fixed w-full z-50 bg-background-dark/95 backdrop-blur-md shadow-sm border-b border-secondary/20 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
