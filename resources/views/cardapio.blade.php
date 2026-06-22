@@ -47,10 +47,17 @@
                     data-image="{{ $destaque->imagem ? (Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem)) : '' }}">
                     <div class="relative h-72 overflow-hidden">
                         @if($destaque->imagem)
-                            <img alt="{{ $destaque->nome }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" src="{{ Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem) }}"/>
+                            <img alt="{{ $destaque->nome }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                src="{{ Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem) }}"
+                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"/>
+                            <div class="hidden w-full h-full bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b] flex flex-col items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-6xl text-secondary/40">bakery_dining</span>
+                                <p class="text-secondary/40 text-sm font-semibold">Sem foto</p>
+                            </div>
                         @else
-                            <div class="w-full h-full bg-gray-800 flex items-center justify-center">
-                                <span class="material-icons text-6xl text-gray-600">image_not_supported</span>
+                            <div class="w-full h-full bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b] flex flex-col items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-6xl text-secondary/40">bakery_dining</span>
+                                <p class="text-secondary/40 text-sm font-semibold">Foto em breve</p>
                             </div>
                         @endif
                         <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
@@ -91,10 +98,15 @@
                             data-category="{{ $categoria->nome }}"
                             data-image="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem)) : '' }}">
                             @if($produto->imagem)
-                                <img alt="{{ $produto->nome }}" class="w-16 h-16 rounded-lg object-cover border border-secondary/20 shadow-soft flex-shrink-0" src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem) }}"/>
+                                <img alt="{{ $produto->nome }}" class="w-16 h-16 rounded-lg object-cover border border-secondary/20 shadow-soft flex-shrink-0"
+                                    src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem) }}"
+                                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"/>
+                                <div class="hidden w-16 h-16 rounded-lg bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b] flex items-center justify-center flex-shrink-0 border border-secondary/20">
+                                    <span class="material-symbols-outlined text-secondary/40 text-2xl">bakery_dining</span>
+                                </div>
                             @else
-                                <div class="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 border border-secondary/20">
-                                    <span class="material-icons text-gray-600">fastfood</span>
+                                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b] flex items-center justify-center flex-shrink-0 border border-secondary/20">
+                                    <span class="material-symbols-outlined text-secondary/40 text-2xl">bakery_dining</span>
                                 </div>
                             @endif
                             <div class="flex-grow">
@@ -117,10 +129,12 @@
         <button id="modal-close" class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 text-text-light hover:bg-secondary hover:text-primary transition-colors focus:outline-none backdrop-blur-md">
             <span class="material-icons">close</span>
         </button>
-        <div class="md:w-1/2 relative h-64 sm:h-80 md:h-auto overflow-hidden">
-            <img id="modal-image" alt="" class="w-full h-full object-cover"/>
-            <div id="modal-image-placeholder" class="hidden w-full h-full bg-gray-800 flex items-center justify-center">
-                <span class="material-icons text-8xl text-gray-600">fastfood</span>
+        <div class="md:w-1/2 relative h-64 sm:h-80 md:h-auto overflow-hidden bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b]">
+            <img id="modal-image" alt="" class="w-full h-full object-cover"
+                onerror="this.onerror=null; this.style.display='none'; document.getElementById('modal-image-placeholder').classList.remove('hidden');"/>
+            <div id="modal-image-placeholder" class="hidden w-full h-full flex flex-col items-center justify-center gap-3 min-h-[200px]">
+                <span class="material-symbols-outlined text-8xl text-secondary/30">bakery_dining</span>
+                <p class="text-secondary/30 text-sm font-semibold uppercase tracking-wider">Foto em breve</p>
             </div>
             <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-background-dark via-transparent to-transparent opacity-80"></div>
         </div>
