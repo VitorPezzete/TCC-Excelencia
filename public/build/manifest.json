@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-LaXF9yF5.css",
+    "file": "assets/app-CxWN3Ube.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -63,7 +63,7 @@
     "isEntry": true
   },
   "resources/js/login.js": {
-    "file": "assets/login-Bc6HwpOO.js",
+    "file": "assets/login-Cq0YrAu6.js",
     "name": "login",
     "src": "resources/js/login.js",
     "isEntry": true
