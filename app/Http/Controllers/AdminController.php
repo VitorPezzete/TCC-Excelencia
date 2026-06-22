@@ -157,10 +157,9 @@ class AdminController extends Controller
         $totalAvaliacoes = Avaliacao::count();
         $avaliacoesSemResposta = Avaliacao::whereNull('resposta_admin')->count();
 
-        // Pedidos de hoje (ativos — excluindo entregue e cancelado)
+        // Pedidos de hoje (todos os status para permitir filtros na tela)
         $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])
             ->whereDate('created_at', today())
-            ->whereNotIn('status', ['entregue', 'cancelado'])
             ->latest()
             ->get();
 
@@ -264,7 +263,6 @@ class AdminController extends Controller
     {
         $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])
             ->whereDate('created_at', today())
-            ->whereNotIn('status', ['entregue', 'cancelado', 'aguardando_pagamento'])
             ->latest()
             ->get();
 
@@ -548,7 +546,7 @@ class AdminController extends Controller
                 'preco'      => number_format($i->preco_unitario, 2, ',', '.'),
                 'observacao' => $i->observacoes,
                 'imagem'     => $i->produto?->imagem
-                    ? (str_starts_with($i->produto->imagem, 'http') ? $i->produto->imagem : asset('storage/'.$i->produto->imagem))
+                    ? (str_starts_with($i->produto->imagem, 'http') ? $i->produto->imagem : asset('storage_public/'.$i->produto->imagem))
                     : null,
             ]),
         ]);

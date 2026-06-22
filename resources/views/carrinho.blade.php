@@ -36,7 +36,7 @@
                 @foreach($itens as $item)
                 <div class="cart-item bg-[#261715] rounded-xl border border-gray-800 p-4 sm:p-6 shadow-soft flex flex-col sm:flex-row gap-6 relative" data-id="{{ $item->id }}">
                     <div class="w-full sm:w-24 h-24 rounded-lg bg-gray-800 overflow-hidden shrink-0">
-                        <img src="{{ Str::startsWith($item->produto->imagem, 'http') ? $item->produto->imagem : asset('storage/' . $item->produto->imagem) }}" alt="{{ $item->produto->nome }}" class="w-full h-full object-cover"/>
+                        <img src="{{ Str::startsWith($item->produto->imagem, 'http') ? $item->produto->imagem : asset('storage_public/' . $item->produto->imagem) }}" alt="{{ $item->produto->nome }}" class="w-full h-full object-cover"/>
                     </div>
                     
                     <div class="flex-grow flex flex-col justify-between">

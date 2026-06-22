@@ -504,7 +504,16 @@
                     {{-- Filtro pílulas de status (somente ativos) --}}
                     <div class="px-4 md:px-5 py-3 border-b border-white/[0.03] flex gap-2 flex-wrap">
                         @php
-                            $statusAtivos = [''=>'Todos','pendente'=>'Pendente','confirmado'=>'Confirmado','preparando'=>'Preparando','saiu_para_entrega'=>'Saiu p/ Entrega'];
+                            $statusAtivos = [
+                                ''=>'Todos',
+                                'aguardando_pagamento'=>'Aguardando Pagto',
+                                'pendente'=>'Pendente',
+                                'confirmado'=>'Confirmado',
+                                'preparando'=>'Preparando',
+                                'saiu_para_entrega'=>'Saiu p/ Entrega',
+                                'entregue'=>'Entregues',
+                                'cancelado'=>'Cancelados'
+                            ];
                             $countAtivos = $pedidosHoje_lista->groupBy('status')->map->count();
                         @endphp
                         @foreach($statusAtivos as $val => $label)
@@ -652,7 +661,7 @@
                                         <td class="td">
                                             <div class="flex items-center gap-3">
                                                 @if($produto->imagem)
-                                                    <img src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/' . $produto->imagem) }}"
+                                                    <img src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/' . $produto->imagem) }}"
                                                         class="w-10 h-10 rounded-full object-cover bg-gray-800 border border-white/10 shrink-0"
                                                         alt="{{ $produto->nome }}">
                                                 @else
@@ -702,7 +711,7 @@
                                                     data-categoria="{{ $produto->categoria_id }}"
                                                     data-ativo="{{ $produto->ativo ? '1' : '0' }}"
                                                     data-destaque="{{ $produto->destaque ? '1' : '0' }}"
-                                                    data-imagem="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/' . $produto->imagem)) : '' }}">
+                                                    data-imagem="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/' . $produto->imagem)) : '' }}">
                                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                                 </button>
                                                 <button

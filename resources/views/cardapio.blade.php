@@ -44,11 +44,11 @@
                     data-description="{{ $destaque->descricao }}"
                     data-price="{{ number_format($destaque->preco, 2, ',', '.') }}"
                     data-category="{{ $destaque->categoria->nome ?? 'Destaque' }}"
-                    data-image="{{ $destaque->imagem ? (Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem)) : '' }}">
+                    data-image="{{ $destaque->imagem ? (Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage_public/'.$destaque->imagem)) : '' }}">
                     <div class="relative h-72 overflow-hidden">
                         @if($destaque->imagem)
                             <img alt="{{ $destaque->nome }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                                src="{{ Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage/'.$destaque->imagem) }}"
+                                src="{{ Str::startsWith($destaque->imagem, 'http') ? $destaque->imagem : asset('storage_public/'.$destaque->imagem) }}"
                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"/>
                             <div class="hidden w-full h-full bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b] flex flex-col items-center justify-center gap-2">
                                 <span class="material-symbols-outlined text-6xl text-secondary/40">bakery_dining</span>
@@ -96,10 +96,10 @@
                             data-description="{{ $produto->descricao }}"
                             data-price="{{ number_format($produto->preco, 2, ',', '.') }}"
                             data-category="{{ $categoria->nome }}"
-                            data-image="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem)) : '' }}">
+                            data-image="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/'.$produto->imagem)) : '' }}">
                             @if($produto->imagem)
                                 <img alt="{{ $produto->nome }}" class="w-16 h-16 rounded-lg object-cover border border-secondary/20 shadow-soft flex-shrink-0"
-                                    src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem) }}"
+                                    src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/'.$produto->imagem) }}"
                                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"/>
                                 <div class="hidden w-16 h-16 rounded-lg bg-gradient-to-br from-[#2a1a18] to-[#1a0d0b] flex items-center justify-center flex-shrink-0 border border-secondary/20">
                                     <span class="material-symbols-outlined text-secondary/40 text-2xl">bakery_dining</span>
