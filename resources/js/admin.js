@@ -695,7 +695,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tr.id            = `produto-row-${prod.id}`;
         tr.dataset.nome  = prod.nome.toLowerCase();
         tr.dataset.cat   = prod.categoria?.nome || '';
-        const imgSrc = prod.imagem ? (prod.imagem.startsWith('http') ? prod.imagem : `/storage_public/${prod.imagem}`) : '';
+        const imgSrc = prod.imagem ? (prod.imagem.startsWith('http') ? prod.imagem : `/storage/${prod.imagem}`) : '';
         const imgHtml = imgSrc
             ? `<img src="${imgSrc}" class="w-10 h-10 rounded-full object-cover bg-gray-800 border border-white/10 shrink-0" alt="${prod.nome}">`
             : `<div class="w-10 h-10 rounded-full bg-gray-900 border border-white/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-gray-700 text-[18px]">image</span></div>`;

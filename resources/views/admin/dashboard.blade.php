@@ -661,7 +661,7 @@
                                         <td class="td">
                                             <div class="flex items-center gap-3">
                                                 @if($produto->imagem)
-                                                    <img src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/' . $produto->imagem) }}"
+                                                    <img src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/' . $produto->imagem) }}"
                                                         class="w-10 h-10 rounded-full object-cover bg-gray-800 border border-white/10 shrink-0"
                                                         alt="{{ $produto->nome }}">
                                                 @else
@@ -711,7 +711,7 @@
                                                     data-categoria="{{ $produto->categoria_id }}"
                                                     data-ativo="{{ $produto->ativo ? '1' : '0' }}"
                                                     data-destaque="{{ $produto->destaque ? '1' : '0' }}"
-                                                    data-imagem="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/' . $produto->imagem)) : '' }}">
+                                                    data-imagem="{{ $produto->imagem ? (Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/' . $produto->imagem)) : '' }}">
                                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                                 </button>
                                                 <button

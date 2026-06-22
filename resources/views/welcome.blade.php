@@ -149,7 +149,7 @@
                 <img
                     alt="{{ $produto->nome }}"
                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage_public/'.$produto->imagem) }}">
+                    src="{{ Str::startsWith($produto->imagem, 'http') ? $produto->imagem : asset('storage/'.$produto->imagem) }}">
             @else
                 <div class="w-full h-full bg-gradient-to-br from-secondary/10 to-secondary/5 flex items-center justify-center">
                     <span class="material-symbols-outlined text-secondary/30 text-6xl">restaurant_menu</span>
