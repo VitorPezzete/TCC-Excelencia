@@ -567,7 +567,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (res.ok) {
             fecharModal();
             const btn = document.querySelector(`.btn-avaliar-pedido[data-pedido-id="${avaliarPedidoId}"]`);
-            if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-[15px]" style="font-variation-settings:\27FILL\27 1">star</span> Ver Avaliação';
+            if (btn) {
+                // Atualiza visual
+                btn.innerHTML = '<span class="material-symbols-outlined text-[15px]" style="font-variation-settings:\'FILL\' 1">star</span> Ver Avaliação';
+                // Atualiza dados para que o próximo clique abra em modo "ver", não "avaliar"
+                btn.dataset.jaAvaliou    = '1';
+                btn.dataset.avNota       = String(notaSelecionada);
+                btn.dataset.avComentario = textarea.value;
+                // Re-vincula o listener com os dados atualizados
+                window.bindAvaliarButtons();
+            }
         } else {
             alert('Erro ao enviar avaliação. Tente novamente.');
         }

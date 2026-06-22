@@ -656,14 +656,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (row) {
                     const prod   = d.produto;
                     const imgSrc = prod.imagem ? (prod.imagem.startsWith('http') ? prod.imagem : `/storage/${prod.imagem}`) : '';
-                    const imgEl  = row.querySelector('img, .w-10.h-10.rounded-full');
-                    if (imgEl && imgEl.tagName === 'IMG') imgEl.src = imgSrc || '';
+                    
+                    // Atualiza o wrapper da imagem inteiramente para evitar problemas de selector
+                    const imgWrapper = row.querySelector('#img-preview-wrapper, .w-10.h-10.rounded-full');
+                    if (imgWrapper) {
+                        imgWrapper.innerHTML = imgSrc
+                            ? `<img src="${imgSrc}" class="w-full h-full object-cover" alt="${prod.nome}">`
+                            : `<span class="material-symbols-outlined text-gray-700 text-[18px]">image</span>`;
+                    }
+                    
                     const nome  = row.querySelector('.font-semibold.text-white');
                     if (nome) nome.textContent = prod.nome;
                     const cat   = row.querySelector('td:nth-child(2)');
                     if (cat) cat.textContent = prod.categoria?.nome || '—';
                     const preco = row.querySelector('.text-secondary.font-bold');
                     if (preco) preco.textContent = `R$ ${parseFloat(prod.preco).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+                    
+                    // Atualiza o data-imagem para que a próxima edição abra com a imagem correta
+                    const editBtn = row.querySelector('.btn-editar-produto');
+                    if (editBtn) editBtn.dataset.imagem = imgSrc;
                 }
                 showToast('Produto atualizado com sucesso!');
             }
