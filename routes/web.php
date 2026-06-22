@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function () {
 
     // Rota de Checkout
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/{pedido}/status', [\App\Http\Controllers\CheckoutController::class, 'status'])->name('checkout.status');
 
     // Rota de Pagamento PIX (Mercado Pago)
     Route::post('/pagamento/pix/{pedido}', [PagamentoController::class, 'criarPix'])->name('pagamento.pix');

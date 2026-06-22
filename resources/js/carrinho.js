@@ -266,6 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const pixCodigo     = document.getElementById('pix-codigo');
     const pixCountdown  = document.getElementById('pix-countdown');
     let   countdownTimer = null;
+    let   pixStatusInterval = null;
     let   currentPedidoId = null;
 
     function openPixModal() {
@@ -280,6 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
         modalPix?.classList.add('hidden');
         document.body.style.overflow = '';
         if (countdownTimer) clearInterval(countdownTimer);
+        if (pixStatusInterval) clearInterval(pixStatusInterval);
     }
 
     function startCountdown(expiracaoIso) {
@@ -320,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 pixLoading?.classList.add('hidden');
                 pixContent?.classList.remove('hidden');
                 if (data.expiracao) startCountdown(data.expiracao);
+                startPixPolling(pedidoId);
             } else {
                 throw new Error(data.message || 'Erro ao gerar PIX.');
             }
@@ -329,6 +332,38 @@ document.addEventListener('DOMContentLoaded', function () {
             pixError?.classList.add('flex');
             pixErrorMsg.textContent = err.message || 'Tente novamente em instantes.';
         }
+    }
+
+    function startPixPolling(pedidoId) {
+        if (pixStatusInterval) clearInterval(pixStatusInterval);
+        pixStatusInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/checkout/${pedidoId}/status`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.status === 'confirmado' || data.status === 'preparando' || data.status === 'saiu_para_entrega' || data.status === 'entregue') {
+                    clearInterval(pixStatusInterval);
+                    if (countdownTimer) clearInterval(countdownTimer);
+                    
+                    pixContent.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-6 space-y-4">
+                            <span class="material-symbols-outlined text-6xl text-[#00b37e]">check_circle</span>
+                            <h3 class="text-xl font-bold text-white">Pagamento Aprovado!</h3>
+                            <p class="text-gray-400 text-sm text-center">Seu pedido foi confirmado e já está na cozinha.</p>
+                            <button id="btn-pix-concluido-auto" class="mt-4 w-full border border-[#00b37e]/40 hover:border-[#00b37e] text-[#00b37e] hover:text-white hover:bg-[#00b37e]/10 font-bold py-3 rounded-xl transition-all text-sm">
+                                Acompanhar Meu Pedido
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('btn-pix-concluido-auto')?.addEventListener('click', () => {
+                        window.location.href = '/perfil?tab=pedidos';
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao buscar status do PIX', err);
+            }
+        }, 5000); // Polling a cada 5 segundos
     }
 
     // Botão copiar código PIX

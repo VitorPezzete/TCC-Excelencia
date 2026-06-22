@@ -146,5 +146,10 @@ class CheckoutController extends Controller
             ], 500);
         }
     }
+    public function status($id)
+    {
+        $pedido = \App\Models\Pedido::where('user_id', auth()->id())->findOrFail($id);
+        return response()->json(['status' => $pedido->status]);
+    }
 }
 
