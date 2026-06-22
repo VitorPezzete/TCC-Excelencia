@@ -1,6 +1,7 @@
 @php
     $statusClasses = [
         'pendente'          => 'bg-gray-500/15 text-gray-400 border-gray-700/50',
+        'aguardando_pagamento' => 'bg-yellow-500/15 text-yellow-400 border-yellow-800/50',
         'confirmado'        => 'bg-blue-500/15 text-blue-400 border-blue-800/50',
         'preparando'        => 'bg-amber-500/15 text-amber-400 border-amber-800/50',
         'saiu_para_entrega' => 'bg-purple-500/15 text-purple-400 border-purple-800/50',
@@ -9,6 +10,7 @@
     ];
     $statusIcons = [
         'pendente'          => 'schedule',
+        'aguardando_pagamento' => 'qr_code_scanner',
         'confirmado'        => 'thumb_up',
         'preparando'        => 'soup_kitchen',
         'saiu_para_entrega' => 'two_wheeler',
@@ -17,6 +19,7 @@
     ];
     $statusLabels = [
         'pendente'          => 'Pendente',
+        'aguardando_pagamento' => 'Aguardando Pagamento',
         'confirmado'        => 'Confirmado',
         'preparando'        => 'Preparando',
         'saiu_para_entrega' => 'Saiu p/ Entrega',
