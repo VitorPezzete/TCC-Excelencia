@@ -128,6 +128,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Categorias
     Route::get('/categorias', [\App\Http\Controllers\AdminController::class, 'listCategorias'])->name('categorias.list');
     Route::post('/categorias', [\App\Http\Controllers\AdminController::class, 'storeCategoria'])->name('categorias.store');
+    Route::post('/categorias/reorder', [\App\Http\Controllers\AdminController::class, 'reorderCategorias'])->name('categorias.reorder');
     Route::put('/categorias/{id}', [\App\Http\Controllers\AdminController::class, 'updateCategoria'])->name('categorias.update');
     Route::patch('/categorias/{id}/toggle', [\App\Http\Controllers\AdminController::class, 'toggleCategoria'])->name('categorias.toggle');
     Route::delete('/categorias/{id}', [\App\Http\Controllers\AdminController::class, 'destroyCategoria'])->name('categorias.destroy');

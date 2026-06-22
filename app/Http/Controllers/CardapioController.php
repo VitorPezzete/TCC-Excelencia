@@ -16,6 +16,7 @@ class CardapioController extends Controller
             ->with(['produtos' => function($q) {
                 $q->where('ativo', true);
             }])
+            ->orderBy('ordem')
             ->orderBy('nome')
             ->get();
 

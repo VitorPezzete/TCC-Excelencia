@@ -439,7 +439,21 @@ class AdminController extends Controller
 
     public function listCategorias()
     {
-        return response()->json(Categoria::orderBy('nome')->get());
+        return response()->json(Categoria::orderBy('ordem')->orderBy('nome')->get());
+    }
+
+    public function reorderCategorias(Request $request)
+    {
+        $request->validate([
+            'ordem'   => 'required|array',
+            'ordem.*' => 'exists:categorias,id',
+        ]);
+
+        foreach ($request->ordem as $index => $id) {
+            Categoria::where('id', $id)->update(['ordem' => $index]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
 

@@ -855,6 +855,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // SortableJS para ordenar as categorias
+    const listaCategoriasModal = document.getElementById('lista-categorias-modal');
+    if (listaCategoriasModal && typeof Sortable !== 'undefined') {
+        Sortable.create(listaCategoriasModal, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'opacity-50',
+            onEnd: async function () {
+                const ids = Array.from(listaCategoriasModal.children).map(li => li.dataset.id);
+                const res = await fetch('/admin/categorias/reorder', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-CSRF-TOKEN': csrf, 
+                        'Accept': 'application/json' 
+                    },
+                    body: JSON.stringify({ ordem: ids })
+                });
+                if (res.ok) {
+                    showToast('Ordem das categorias atualizada!');
+                } else {
+                    showToast('Erro ao atualizar a ordem.', 'error');
+                }
+            }
+        });
+    }
+
     let avaliacoesFiltroNota = '';
     let avaliacoesData       = [];
 

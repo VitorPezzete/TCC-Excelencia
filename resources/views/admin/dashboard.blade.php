@@ -1136,9 +1136,10 @@
             </div>
             <div class="p-5 flex-1 overflow-y-auto">
                 <ul class="space-y-2 mb-6" id="lista-categorias-modal">
-                    @foreach(\App\Models\Categoria::orderBy('nome')->get() as $cat)
-                        <li class="flex items-center justify-between bg-black/20 border border-white/[0.06] rounded-xl px-4 py-2" id="categoria-row-{{ $cat->id }}">
+                    @foreach(\App\Models\Categoria::orderBy('ordem')->orderBy('nome')->get() as $cat)
+                        <li class="flex items-center justify-between bg-black/20 border border-white/[0.06] rounded-xl px-4 py-2" id="categoria-row-{{ $cat->id }}" data-id="{{ $cat->id }}">
                             <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-gray-600 hover:text-white cursor-move drag-handle transition-colors">drag_indicator</span>
                                 <span class="text-sm text-gray-300 font-semibold" id="cat-nome-{{ $cat->id }}">{{ $cat->nome }}</span>
                                 <span class="badge {{ $cat->ativo ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400' }} ml-2" id="cat-badge-{{ $cat->id }}">
                                     <span class="material-symbols-outlined text-[10px] mr-1">{{ $cat->ativo ? 'check_circle' : 'cancel' }}</span>
@@ -1415,6 +1416,8 @@
     </script>
 
     @include('partials.global_alerts')
+    
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </body>
 
 </html>
