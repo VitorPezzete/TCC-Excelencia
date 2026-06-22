@@ -1129,18 +1129,34 @@
                 <ul class="space-y-2 mb-6" id="lista-categorias-modal">
                     @foreach(\App\Models\Categoria::orderBy('nome')->get() as $cat)
                         <li class="flex items-center justify-between bg-black/20 border border-white/[0.06] rounded-xl px-4 py-2" id="categoria-row-{{ $cat->id }}">
-                            <span class="text-sm text-gray-300 font-semibold">{{ $cat->nome }}</span>
-                            <button class="btn-deletar-categoria text-gray-600 hover:text-red-400 p-1.5 rounded-full hover:bg-red-500/10 transition-colors" data-id="{{ $cat->id }}" data-nome="{{ $cat->nome }}" title="Excluir Categoria">
-                                <span class="material-symbols-outlined text-[18px]">delete</span>
-                            </button>
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm text-gray-300 font-semibold" id="cat-nome-{{ $cat->id }}">{{ $cat->nome }}</span>
+                                <span class="badge {{ $cat->ativo ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400' }} ml-2" id="cat-badge-{{ $cat->id }}">
+                                    <span class="material-symbols-outlined text-[10px] mr-1">{{ $cat->ativo ? 'check_circle' : 'cancel' }}</span>
+                                    {{ $cat->ativo ? 'Ativa' : 'Inativa' }}
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn-editar-categoria text-gray-600 hover:text-secondary p-1.5 rounded-full hover:bg-secondary/10 transition-colors" data-id="{{ $cat->id }}" data-nome="{{ $cat->nome }}" title="Editar Categoria">
+                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                </button>
+                                <button class="btn-toggle-categoria text-gray-600 hover:text-yellow-400 p-1.5 rounded-full hover:bg-yellow-400/10 transition-colors" data-id="{{ $cat->id }}" data-ativo="{{ $cat->ativo }}" title="{{ $cat->ativo ? 'Desativar Categoria' : 'Ativar Categoria' }}">
+                                    <span class="material-symbols-outlined text-[18px]" id="cat-toggle-icon-{{ $cat->id }}">{{ $cat->ativo ? 'visibility_off' : 'visibility' }}</span>
+                                </button>
+                                <button class="btn-deletar-categoria text-gray-600 hover:text-red-400 p-1.5 rounded-full hover:bg-red-500/10 transition-colors" data-id="{{ $cat->id }}" data-nome="{{ $cat->nome }}" title="Excluir Categoria">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </div>
                         </li>
                     @endforeach
                 </ul>
                 <div class="border-t border-white/[0.06] pt-5">
-                    <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2">Nova Categoria</label>
+                    <label id="lbl-nova-categoria" class="block text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2">Nova Categoria</label>
+                    <input type="hidden" id="f-cat-id" value="">
                     <div class="flex gap-2">
                         <input id="f-cat-nome" type="text" placeholder="Ex: Bolos Artesanais"
                             class="flex-1 bg-black/30 border border-white/[0.08] text-white text-sm rounded-xl px-4 py-2 focus:outline-none focus:border-secondary/40 placeholder-gray-700">
+                        <button id="btn-cancelar-categoria" class="hidden px-4 py-2 text-gray-500 hover:text-white transition-colors text-xs font-bold rounded-xl border border-white/10">Cancelar</button>
                         <button id="btn-salvar-categoria"
                             class="px-5 py-2 bg-secondary text-primary text-xs font-bold rounded-xl hover:bg-[#c2884a] transition-all whitespace-nowrap shadow-md">Criar</button>
                     </div>
@@ -1311,7 +1327,8 @@
         }
 
         async function loadZonas() {
-            const res = await fetch('/admin/zonas-entrega', { headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+            const url = '/admin/zonas-entrega?t=' + Date.now();
+            const res = await fetch(url, { headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
             const zonas = await res.json();
             renderZonas(zonas);
         }

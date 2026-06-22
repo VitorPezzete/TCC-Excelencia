@@ -77,10 +77,12 @@ class CheckoutController extends Controller
 
             $total = $subtotal + $taxa_entrega;
 
+            $statusPedido = in_array($request->metodo_pagamento, ['pix', 'cartao_online']) ? 'aguardando_pagamento' : 'pendente';
+
             $pedido = Pedido::create([
                 'user_id'      => $user->id,
                 'endereco_id'  => $request->endereco_id,
-                'status'       => 'pendente',
+                'status'       => $statusPedido,
                 'subtotal'     => $subtotal,
                 'taxa_entrega' => $taxa_entrega,
                 'total'        => $total,

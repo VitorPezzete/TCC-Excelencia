@@ -12,9 +12,14 @@ class CardapioController extends Controller
 {
     //
     public function index() {
-        $categorias = Categoria::with('produtos')->get();
+        $categorias = Categoria::where('ativo', true)
+            ->with(['produtos' => function($q) {
+                $q->where('ativo', true);
+            }])
+            ->orderBy('nome')
+            ->get();
 
-        $destaques = Produto::where('destaque', true)->get();
+        $destaques = Produto::where('destaque', true)->where('ativo', true)->get();
 
         return view('cardapio', compact('categorias', 'destaques'));
     }

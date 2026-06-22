@@ -264,7 +264,7 @@ class AdminController extends Controller
     {
         $pedidosHoje_lista = Pedido::with(['user', 'pagamento'])
             ->whereDate('created_at', today())
-            ->whereNotIn('status', ['entregue', 'cancelado'])
+            ->whereNotIn('status', ['entregue', 'cancelado', 'aguardando_pagamento'])
             ->latest()
             ->get();
 
@@ -422,6 +422,21 @@ class AdminController extends Controller
         $request->validate(['nome' => 'required|string|max:100|unique:categorias,nome']);
         $categoria = Categoria::create(['nome' => $request->nome]);
         return response()->json(['success' => true, 'categoria' => $categoria]);
+    }
+
+    public function updateCategoria(Request $request, $id)
+    {
+        $categoria = Categoria::findOrFail($id);
+        $request->validate(['nome' => 'required|string|max:100|unique:categorias,nome,' . $categoria->id]);
+        $categoria->update(['nome' => $request->nome]);
+        return response()->json(['success' => true, 'categoria' => $categoria]);
+    }
+
+    public function toggleCategoria($id)
+    {
+        $categoria = Categoria::findOrFail($id);
+        $categoria->update(['ativo' => !$categoria->ativo]);
+        return response()->json(['success' => true, 'ativo' => $categoria->ativo]);
     }
 
     public function listCategorias()

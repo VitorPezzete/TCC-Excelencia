@@ -244,9 +244,9 @@ class PagamentoController extends Controller
             if ($pagamento) {
                 $pagamento->update(['status' => $status]);
 
-                // Atualiza o status do pedido quando aprovado
+                // Atualiza o status do pedido quando aprovado para "pendente" (aguardando aceite da loja)
                 if ($status === 'aprovado') {
-                    $pagamento->pedido()->update(['status' => 'confirmado']);
+                    $pagamento->pedido()->update(['status' => 'pendente']);
                 }
             }
 

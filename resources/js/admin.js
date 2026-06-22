@@ -739,38 +739,120 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const modalCategoria = document.getElementById('modal-categoria');
     const catNomeInput   = document.getElementById('f-cat-nome');
+    const catIdInput     = document.getElementById('f-cat-id');
+    const catLbl         = document.getElementById('lbl-nova-categoria');
+    const btnSalvarCat   = document.getElementById('btn-salvar-categoria');
+    const btnCancelarCat = document.getElementById('btn-cancelar-categoria');
 
-    function openCategoriaModal()  { catNomeInput.value = ''; modalCategoria?.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+    function resetCategoriaForm() {
+        catIdInput.value = '';
+        catNomeInput.value = '';
+        catLbl.textContent = 'Nova Categoria';
+        btnSalvarCat.textContent = 'Criar';
+        btnCancelarCat.classList.add('hidden');
+    }
+
+    function openCategoriaModal()  { resetCategoriaForm(); modalCategoria?.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
     function closeCategoriaModal() { modalCategoria?.classList.add('hidden'); document.body.style.overflow = ''; }
 
     document.getElementById('btn-nova-categoria')?.addEventListener('click', openCategoriaModal);
     document.getElementById('modal-categoria-close')?.addEventListener('click', closeCategoriaModal);
     document.getElementById('modal-categoria-cancel')?.addEventListener('click', closeCategoriaModal);
+    btnCancelarCat?.addEventListener('click', resetCategoriaForm);
     modalCategoria?.addEventListener('click', e => { if (e.target === modalCategoria) closeCategoriaModal(); });
 
-    document.getElementById('btn-salvar-categoria')?.addEventListener('click', async function() {
+    btnSalvarCat?.addEventListener('click', async function() {
         const nome = catNomeInput?.value.trim();
+        const id   = catIdInput?.value;
         if (!nome) { showToast('Informe um nome para a categoria.', 'error'); return; }
+        
         this.disabled     = true;
-        this.textContent  = 'Criando…';
+        this.textContent  = id ? 'Atualizando…' : 'Criando…';
 
         const fd = new FormData();
         fd.append('nome', nome);
-        const res = await postFormData('/admin/categorias', fd, 'POST');
+        
+        const url = id ? `/admin/categorias/${id}` : '/admin/categorias';
+        const method = id ? 'PUT' : 'POST';
+        
+        if (id) {
+            // Se for PUT, precisamos mandar como JSON ou adicionar _method=PUT no FormData. 
+            // O postFormData usa multipart, então vamos usar PATCH ou add _method
+            fd.append('_method', 'PUT');
+        }
+
+        const res = await postFormData(id ? '/admin/categorias/' + id : '/admin/categorias', fd, 'POST');
         if (res.ok) {
             const d = await res.json();
-            const selCat = document.getElementById('f-categoria');
-            if (selCat) selCat.append(new Option(d.categoria.nome, d.categoria.id));
-            const selFlt = document.getElementById('produto-cat-filter');
-            if (selFlt) selFlt.append(new Option(d.categoria.nome, d.categoria.nome));
-            closeCategoriaModal();
-            showToast(`Categoria "${d.categoria.nome}" criada!`);
+            
+            if (id) {
+                const elNome = document.getElementById(`cat-nome-${id}`);
+                if (elNome) elNome.textContent = d.categoria.nome;
+                showToast('Categoria atualizada!');
+            } else {
+                // Aqui recarregaríamos a página para facilitar ou recriamos a linha
+                showToast(`Categoria "${d.categoria.nome}" criada!`);
+                setTimeout(() => window.location.reload(), 1000);
+            }
+            resetCategoriaForm();
         } else {
             const err = await res.json().catch(() => ({}));
-            showToast(err.message || 'Erro ao criar categoria.', 'error');
+            showToast(err.message || 'Erro ao salvar categoria.', 'error');
         }
         this.disabled    = false;
-        this.textContent = 'Criar Categoria';
+        this.textContent = id ? 'Atualizar' : 'Criar';
+    });
+
+    // Delegar eventos para as ações de categoria (Editar, Toggle, Deletar)
+    document.getElementById('lista-categorias-modal')?.addEventListener('click', async function(e) {
+        const btnEdit = e.target.closest('.btn-editar-categoria');
+        const btnToggle = e.target.closest('.btn-toggle-categoria');
+        const btnDelete = e.target.closest('.btn-deletar-categoria');
+
+        if (btnEdit) {
+            catIdInput.value = btnEdit.dataset.id;
+            catNomeInput.value = btnEdit.dataset.nome;
+            catLbl.textContent = 'Editar Categoria';
+            btnSalvarCat.textContent = 'Atualizar';
+            btnCancelarCat.classList.remove('hidden');
+            catNomeInput.focus();
+        }
+
+        if (btnToggle) {
+            const id = btnToggle.dataset.id;
+            const res = await patchJson(`/admin/categorias/${id}/toggle`, {});
+            if (res.ok) {
+                const d = await res.json();
+                const isAtivo = d.ativo;
+                
+                // Atualiza o botão
+                btnToggle.dataset.ativo = isAtivo ? '1' : '0';
+                btnToggle.title = isAtivo ? 'Desativar Categoria' : 'Ativar Categoria';
+                const icon = document.getElementById(`cat-toggle-icon-${id}`);
+                if (icon) icon.textContent = isAtivo ? 'visibility_off' : 'visibility';
+                
+                // Atualiza a badge
+                const badge = document.getElementById(`cat-badge-${id}`);
+                if (badge) {
+                    badge.className = `badge ${isAtivo ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'} ml-2`;
+                    badge.innerHTML = `<span class="material-symbols-outlined text-[10px] mr-1">${isAtivo ? 'check_circle' : 'cancel'}</span>${isAtivo ? 'Ativa' : 'Inativa'}`;
+                }
+            }
+        }
+
+        if (btnDelete) {
+            const id = btnDelete.dataset.id;
+            const nome = btnDelete.dataset.nome;
+            if (await customConfirm(`Atenção: Excluir a categoria "${nome}"? Isso deixará os produtos órfãos.`)) {
+                const res = await fetch(`/admin/categorias/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }});
+                if (res.ok) {
+                    document.getElementById(`categoria-row-${id}`)?.remove();
+                    showToast('Categoria excluída!');
+                } else {
+                    showToast('Erro ao excluir. Pode haver produtos usando esta categoria.', 'error');
+                }
+            }
+        }
     });
 
     let avaliacoesFiltroNota = '';
