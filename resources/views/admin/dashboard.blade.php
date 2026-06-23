@@ -348,7 +348,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Faturamento / Mês</p>
-                        <p class="text-xl md:text-2xl font-bold text-secondary font-display truncate">R$ {{ number_format($totalFaturamentoMes, 2, ',', '.') }}</p>
+                        <p class="text-lg xl:text-xl font-bold text-secondary font-display">R$ {{ number_format($totalFaturamentoMes, 2, ',', '.') }}</p>
                         <div class="flex items-center gap-1 mt-1 text-[10px]">
                             @if($variacaoFat >= 0)
                                 <span class="text-green-400 font-bold">▲ {{ number_format($variacaoFat, 1, ',', '.') }}%</span>
@@ -363,7 +363,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Pedidos Hoje</p>
-                        <p id="kpi-pedidos-hoje" class="text-xl md:text-2xl font-bold text-blue-400 font-display">{{ $pedidosHoje }}</p>
+                        <p id="kpi-pedidos-hoje" class="text-lg xl:text-xl font-bold text-blue-400 font-display">{{ $pedidosHoje }}</p>
                         <div class="flex items-center gap-1 mt-1 text-[10px]">
                             @if($variacaoPedidos >= 0)
                                 <span class="text-green-400 font-bold">▲ {{ number_format($variacaoPedidos, 1, ',', '.') }}%</span>
@@ -378,7 +378,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Ticket Médio</p>
-                        <p class="text-xl md:text-2xl font-bold text-green-400 font-display truncate">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</p>
+                        <p class="text-lg xl:text-xl font-bold text-green-400 font-display">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</p>
                         <p class="text-[10px] text-gray-700 mt-1">Este mês</p>
                         <span class="material-symbols-outlined text-[36px] text-green-400/8 absolute bottom-3 right-3">receipt</span>
                     </div>
@@ -386,7 +386,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Cancelamentos</p>
-                        <p class="text-xl md:text-2xl font-bold text-red-400 font-display">{{ number_format($taxaCancelamento, 1, ',', '.') }}%</p>
+                        <p class="text-lg xl:text-xl font-bold text-red-400 font-display">{{ number_format($taxaCancelamento, 1, ',', '.') }}%</p>
                         <p class="text-[10px] text-gray-700 mt-1">Taxa este mês</p>
                         <span class="material-symbols-outlined text-[36px] text-red-400/8 absolute bottom-3 right-3">cancel</span>
                     </div>
@@ -394,7 +394,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Novos Clientes</p>
-                        <p class="text-xl md:text-2xl font-bold text-orange-400 font-display">{{ $novosClientesMes }}</p>
+                        <p class="text-lg xl:text-xl font-bold text-orange-400 font-display">{{ $novosClientesMes }}</p>
                         <div class="flex items-center gap-1 mt-1 text-[10px]">
                             @if($variacaoClientes >= 0)
                                 <span class="text-green-400 font-bold">▲ {{ number_format($variacaoClientes, 1, ',', '.') }}%</span>
@@ -409,7 +409,7 @@
                     <div class="kpi-card col-span-1">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full -translate-y-8 translate-x-8"></div>
                         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Nota Média</p>
-                        <p class="text-xl md:text-2xl font-bold text-purple-400 font-display">{{ number_format($mediaAvaliacoes, 1) }}</p>
+                        <p class="text-lg xl:text-xl font-bold text-purple-400 font-display">{{ number_format($mediaAvaliacoes, 1) }}</p>
                         <p class="text-[10px] text-gray-700 mt-1">{{ $totalAvaliacoes }} avaliações</p>
                         <span class="material-symbols-outlined text-[36px] text-purple-400/8 absolute bottom-3 right-3">star</span>
                     </div>

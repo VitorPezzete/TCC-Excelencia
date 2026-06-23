@@ -262,8 +262,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: 'Faturamento (R$)',
                     data: catData.map(c => c.total),
-                    backgroundColor: 'rgba(214,156,94,0.7)',
-                    borderColor: '#d69c5e',
+                    backgroundColor: catData.map((_, i) => ['rgba(214,156,94,0.7)', 'rgba(96,165,250,0.7)', 'rgba(52,211,153,0.7)', 'rgba(167,139,250,0.7)', 'rgba(244,114,182,0.7)', 'rgba(251,191,36,0.7)'][i % 6]),
+                    borderColor: catData.map((_, i) => ['#d69c5e', '#60a5fa', '#34d399', '#a78bfa', '#f472b6', '#fbbf24'][i % 6]),
                     borderWidth: 1.5,
                     borderRadius: 8,
                     borderSkipped: false,
@@ -296,8 +296,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: 'Unidades Vendidas',
                     data: topProdData.map(p => p.total),
-                    backgroundColor: 'rgba(245,158,11,0.7)',
-                    borderColor: '#f59e0b',
+                    backgroundColor: topProdData.map((_, i) => ['rgba(245,158,11,0.7)', 'rgba(56,189,248,0.7)', 'rgba(163,230,53,0.7)', 'rgba(232,121,249,0.7)', 'rgba(251,113,133,0.7)'][i % 5]),
+                    borderColor: topProdData.map((_, i) => ['#f59e0b', '#38bdf8', '#a3e635', '#e879f9', '#fb7185'][i % 5]),
                     borderWidth: 1.5,
                     borderRadius: 4,
                 }]
