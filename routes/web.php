@@ -153,3 +153,14 @@ Route::post('/webhook/mercadopago', [PagamentoController::class, 'webhook'])->na
 
 // API pública — status atual da loja (polling por todas as páginas)
 Route::get('/api/store-status', [\App\Http\Controllers\AdminController::class, 'publicStoreStatus'])->name('api.store.status');
+
+// Rota para servir imagens do storage (contorno para a falta de symlink na Hostinger)
+Route::get('/storage/produtos/{filename}', function ($filename) {
+    $path = storage_path('app/public/produtos/' . $filename);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    $file = file_get_contents($path);
+    $type = mime_content_type($path);
+    return response($file, 200)->header("Content-Type", $type);
+})->where('filename', '.*');
