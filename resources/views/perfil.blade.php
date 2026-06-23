@@ -125,7 +125,7 @@
                 </div>
             </form>
 
-            <div class="mt-8 bg-[#261715] rounded-xl border border-gray-800 p-6 shadow-soft">
+            <div class="mt-8 bg-[#261715] rounded-xl border border-gray-800 p-6 shadow-soft hidden">
                 <h2 class="font-display text-2xl font-bold text-secondary mb-2 border-b border-gray-800 pb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined">notifications_active</span> Notificações
                 </h2>

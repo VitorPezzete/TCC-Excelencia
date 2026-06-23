@@ -927,7 +927,7 @@
                     </div>
 
                     {{-- Web Push Notifications --}}
-                    <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] p-5 md:p-6 space-y-4 mt-6">
+                    <div class="bg-[#1d0e0b] rounded-2xl border border-white/[0.04] p-5 md:p-6 space-y-4 mt-6 hidden">
                         <div>
                             <h2 class="font-bold text-white text-base">Notificações em Segundo Plano</h2>
                             <p class="text-[11px] text-gray-600 mt-0.5">Receba alertas de novos pedidos mesmo quando a aba do navegador estiver fechada ou o celular bloqueado.</p>
